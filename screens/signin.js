@@ -37,14 +37,11 @@ async function loadFonts() {
   });
 }
 
-function SignUp() {
+function SignIn() {
   const [Email, setEmail] = React.useState(null);
   const [visible, setvisible] = React.useState(false);
   const navigation = useNavigation();
-
   const [password, setPassword] = React.useState(null);
-  const [passwordagain, setPasswordagain] = React.useState("");
-  const [name, setName] = React.useState(null);
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
 
@@ -94,18 +91,6 @@ function SignUp() {
           />
         </View>
 
-        <View style={[styles.inputn]}>
-          <TextInput
-            style={[styles.textClr]}
-            placeholder="Kimi no nawa?"
-            keyboardType="ascii-capable"
-            value={name}
-            onChangeText={setName}
-          />
-          <View style={[styles.label, styles.orFlexBox]}>
-            <Text style={[styles.email, styles.emailTypo]}>Name</Text>
-          </View>
-        </View>
         <View style={[styles.inputn, { margin: scale(10) }]}>
           <TextInput
             style={[styles.textClr]}
@@ -144,40 +129,7 @@ function SignUp() {
             </TouchableOpacity>
           </View>
         </View>
-        <View
-          style={[
-            styles.input1,
-            { borderColor: colors.colorGray, margin: scale(10) },
-          ]}
-        >
-          <View>
-            <TextInput
-              style={[styles.textClr]}
-              placeholder="Mật khẩu"
-              secureTextEntry={!isPasswordVisible} // hide text input if isPasswordVisible is false
-              value={passwordagain}
-              onChangeText={setPasswordagain}
-            />
-            <TouchableOpacity
-              style={{ left: scale(270), position: "absolute" }}
-              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-            >
-              <Ionicons
-                name={isPasswordVisible ? "eye-off" : "eye"}
-                size={scale(20)}
-                color="black"
-              />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            style={{ top: scale(36), left: scale(150) }}
-            onPress={() => navigation.navigate("SignIn")}
-          >
-            <Text style={{ color: "#429690", fontFamily: "Roboto-Regular" }}>
-              Đã có tài khoản?
-            </Text>
-          </TouchableOpacity>
-        </View>
+
         <TouchableOpacity
           style={{
             alignSelf: "center",
@@ -189,12 +141,12 @@ function SignUp() {
             justifyContent: "center",
           }}
         >
-          <Text style={{ color: "white", textAlign: "center" }}>Đăng Ký</Text>
+          <Text style={{ color: "white", textAlign: "center" }}>Đăng Nhập</Text>
         </TouchableOpacity>
-        <View style={{ top: scale(15) }}>
+        <View style={{ top: scale(75) }}>
           <Text
             style={{
-              fontSize: scale(27),
+              fontSize: scale(37),
               textAlign: "center",
               fontFamily: "Roboto-Bold",
             }}
@@ -279,4 +231,4 @@ const styles = ScaledSheet.create({
   },
 });
 
-export default SignUp;
+export default SignIn;
