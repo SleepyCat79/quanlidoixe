@@ -7,6 +7,7 @@ import SignIn from "./screens/signin";
 import * as React from "react";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
+import MaintainScreen from "./screens/maintainscreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,13 @@ export default function App() {
         <Stack.Screen
           name="SignIn"
           component={SignIn}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="MaintainScreen"
+          component={MaintainScreen}
           options={{
             headerShown: false,
           }}

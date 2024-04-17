@@ -140,6 +140,7 @@ function SignIn() {
             borderRadius: scale(30),
             justifyContent: "center",
           }}
+          onPress={() => navigation.navigate("MaintainScreen")}
         >
           <Text style={{ color: "white", textAlign: "center" }}>Đăng Nhập</Text>
         </TouchableOpacity>

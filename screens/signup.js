@@ -62,6 +62,10 @@ function SignUp() {
     prepare();
   }, []);
 
+  if (!fontsLoaded) {
+    return null; // or a loading spinner
+  }
+
   return (
     <KeyboardAwareScrollView
       style={{ backgroundColor: colors.gradient, flex: 1 }}
