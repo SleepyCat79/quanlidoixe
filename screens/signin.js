@@ -1,4 +1,6 @@
 import * as React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   View,
   Text,
@@ -46,7 +48,7 @@ function SignIn() {
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
   const handleSignIn = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:8000/signin", {
+      const response = await fetch("http://192.168.1.3:8000/signin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,6 +59,8 @@ function SignIn() {
       if (!response.ok) {
         const errorData = await response.json();
       } else {
+        // Store user's login status in AsyncStorage
+        await AsyncStorage.setItem("user", "loggedIn");
         navigation.navigate("MaintainScreen");
       }
     } catch (error) {

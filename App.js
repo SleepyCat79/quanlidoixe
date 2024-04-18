@@ -8,6 +8,8 @@ import * as React from "react";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import MaintainScreen from "./screens/maintainscreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import AppLoading from "expo-app-loading";
 
 const Stack = createNativeStackNavigator();
 
@@ -22,37 +24,71 @@ async function loadFonts() {
 }
 
 export default function App() {
+  const [isUserLoggedIn, setIsUserLoggedIn] = React.useState(null);
+  const [fontsLoaded, setFontsLoaded] = React.useState(false);
   React.useEffect(() => {
     loadFonts().then(() => {
       SplashScreen.hideAsync();
+      setFontsLoaded(true);
     });
+
+    // Check if user is logged in
+    const checkUserLoggedIn = async () => {
+      const user = await AsyncStorage.getItem("user");
+      setIsUserLoggedIn(user ? true : false);
+    };
+
+    checkUserLoggedIn();
   }, []);
+
+  if (!fontsLoaded) {
+    return (
+      <AppLoading
+        startAsync={loadFonts}
+        onFinish={() => setFontsLoaded(true)}
+        onError={console.warn}
+      />
+    );
+  }
 
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen
-          name="SignUp"
-          component={SignUp}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="SignIn"
-          component={SignIn}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="MaintainScreen"
-          component={MaintainScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
+        {isUserLoggedIn ? (
+          <Stack.Screen
+            name="MaintainScreen"
+            component={MaintainScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+        ) : (
+          <>
+            <Stack.Screen
+              name="SignUp"
+              component={SignUp}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="SignIn"
+              component={SignIn}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="MaintainScreen"
+              component={MaintainScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+          </>
+        )}
       </Stack.Navigator>
+      {/* Add this closing tag */}
     </NavigationContainer>
   );
 }

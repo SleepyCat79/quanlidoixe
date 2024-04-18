@@ -1,4 +1,6 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import AddDriverModal from "./AddDriverModal";
+import AddVehicleModal from "./AddVehicleModal";
 import Driver from "./drivers";
 import * as React from "react";
 import {
@@ -9,9 +11,11 @@ import {
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  Modal,
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigationState } from "@react-navigation/native";
 
 import {
   widthPercentageToDP as wp,
@@ -95,7 +99,22 @@ async function loadFonts() {
 }
 function Fleet() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
+  const [isModalVisible, setModalVisible] = React.useState(false);
+  const [modalType, setModalType] = React.useState("");
+  const state = useNavigationState((state) => state);
+  const handleAddButtonPress = () => {
+    const currentTab = state.routes[state.index].state
+      ? state.routes[state.index].state.index === 0
+        ? "Drivers"
+        : "Vehicles"
+      : "Drivers";
 
+    setModalType(currentTab === "Drivers" ? "Add Driver" : "Add Vehicle");
+    setModalVisible(true);
+  };
+  const closeModal = () => {
+    setModalVisible(false);
+  };
   React.useEffect(() => {
     async function prepare() {
       try {
@@ -109,6 +128,9 @@ function Fleet() {
 
     prepare();
   }, []);
+  if (!fontsLoaded) {
+    return null; // Or return a loading indicator
+  }
   return (
     <View
       style={{
@@ -117,6 +139,18 @@ function Fleet() {
         backgroundColor: colors.Royalblue,
       }}
     >
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={closeModal}
+      >
+        {modalType === "Add Driver" ? (
+          <AddDriverModal isVisible={isModalVisible} onClose={closeModal} />
+        ) : (
+          <AddVehicleModal isVisible={isModalVisible} onClose={closeModal} />
+        )}
+      </Modal>
       <View
         style={{
           flexDirection: "row",
@@ -142,7 +176,7 @@ function Fleet() {
             style={{ color: "white", top: scale(100), left: scale(110) }}
           ></Ionicons>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleAddButtonPress}>
           <Ionicons
             name="add"
             size={scale(24)}
