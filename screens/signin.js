@@ -44,7 +44,25 @@ function SignIn() {
   const [password, setPassword] = React.useState(null);
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
+  const handleSignIn = async () => {
+    try {
+      const response = await fetch("http://10.0.2.2:8000/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: Email, password: password }),
+      });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+      } else {
+        navigation.navigate("MaintainScreen");
+      }
+    } catch (error) {
+      console.error("Failed to sign up:", error);
+    }
+  };
   React.useEffect(() => {
     async function prepare() {
       try {
@@ -129,6 +147,14 @@ function SignIn() {
             </TouchableOpacity>
           </View>
         </View>
+        <TouchableOpacity
+          style={{ top: scale(0), left: scale(220) }}
+          onPress={() => navigation.navigate("SignIn")}
+        >
+          <Text style={{ color: "#429690", fontFamily: "Roboto-Regular" }}>
+            Chưa có tài khoản?
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={{
@@ -140,7 +166,7 @@ function SignIn() {
             borderRadius: scale(30),
             justifyContent: "center",
           }}
-          onPress={() => navigation.navigate("MaintainScreen")}
+          onPress={() => handleSignIn()}
         >
           <Text style={{ color: "white", textAlign: "center" }}>Đăng Nhập</Text>
         </TouchableOpacity>

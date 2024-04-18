@@ -48,6 +48,31 @@ function SignUp() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
 
+  const handleSignUp = async () => {
+    try {
+      const response = await fetch("http://10.0.2.2:8000/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: name, email: Email, password: password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 422) {
+          // assuming the server returns 409 for existing accounts
+          alert("Account already exists");
+        } else {
+          throw new Error(
+            `HTTP status ${response.status}, data: ${JSON.stringify(errorData)}`
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to sign up:", error);
+    }
+  };
   React.useEffect(() => {
     async function prepare() {
       try {
@@ -192,6 +217,7 @@ function SignUp() {
             borderRadius: scale(30),
             justifyContent: "center",
           }}
+          onPress={() => handleSignUp()}
         >
           <Text style={{ color: "white", textAlign: "center" }}>Đăng Ký</Text>
         </TouchableOpacity>
