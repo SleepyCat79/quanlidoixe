@@ -5,15 +5,18 @@ const mongourl = require("./secrets").mongourl;
 const app = express();
 const port = 8000;
 require("./models/Users");
+require("./models/Drivers");
 
 const cors = require("cors");
 const authRoutes = require("./routes/auth");
+const driverRoutes = require("./routes/driver");
 
 app.use(cors());
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(authRoutes);
+app.use(driverRoutes);
 
 mongoose
   .connect(mongourl, {
