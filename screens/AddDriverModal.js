@@ -91,6 +91,7 @@ const AddDriverModal = ({ isVisible, onClose }) => {
   const [endDate, setEndDate] = React.useState(new Date());
   const [mode, setMode] = React.useState("date");
   const [show, setShow] = React.useState(false);
+
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === "ios");
@@ -101,10 +102,6 @@ const AddDriverModal = ({ isVisible, onClose }) => {
     }
   };
 
-  const showDatepicker = (currentMode) => {
-    setShow(true);
-    setMode(currentMode);
-  };
   const selectImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -116,6 +113,37 @@ const AddDriverModal = ({ isVisible, onClose }) => {
     if (!result.cancelled) {
       // Step 2: Push new image URI to the imageUri array
       setImageUri((oldArray) => [...oldArray, result.assets[0].uri]);
+    }
+  };
+
+  const showDatepicker = (currentMode) => {
+    setShow(true);
+    setMode(currentMode);
+  };
+  const uploadImage = async (filePath) => {
+    let formData = new FormData();
+    let fileName = filePath.split("/").pop();
+
+    // Infer the type of the image
+    let match = /\.(\w+)$/.exec(fileName);
+    let type = match ? `image/${match[1]}` : `image`;
+
+    // Append the image
+    formData.append("file", { uri: filePath, name: fileName, type });
+
+    try {
+      const response = await fetch("http://192.168.1.3:8000/upload", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const data = await response.json();
+      console.log("Success:", data);
+    } catch (error) {
+      console.error("Error:", error);
     }
   };
   const submitDriver = async () => {
@@ -130,6 +158,7 @@ const AddDriverModal = ({ isVisible, onClose }) => {
       endDate
     );
     console.log(driver);
+    uploadImage(imageUri[0]);
     try {
       const response = await fetch("http://192.168.1.3:8000/AddDriver", {
         method: "POST",
@@ -348,6 +377,7 @@ const AddDriverModal = ({ isVisible, onClose }) => {
             }}
           >
             <TouchableOpacity
+              onPress={selectImage}
               style={{
                 width: "90%",
                 height: scale(20),
@@ -357,7 +387,6 @@ const AddDriverModal = ({ isVisible, onClose }) => {
                 justifyContent: "center", // Added this
                 alignItems: "center", // And this
               }}
-              onPress={selectImage}
             >
               <Text style={{ color: "white" }}>Upload Image</Text>
             </TouchableOpacity>

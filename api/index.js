@@ -10,6 +10,7 @@ require("./models/Drivers");
 const cors = require("cors");
 const authRoutes = require("./routes/auth");
 const driverRoutes = require("./routes/driver");
+const uploadRoutes = require("./routes/upload");
 
 app.use(cors());
 
@@ -17,6 +18,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(authRoutes);
 app.use(driverRoutes);
+uploadRoutes(app); // Call the function with app as an argument
 
 mongoose
   .connect(mongourl, {

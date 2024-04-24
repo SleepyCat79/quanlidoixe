@@ -167,10 +167,26 @@ function Driver() {
                   fontFamily: "Roboto-Bold",
                   fontSize: scale(17),
                   top: scale(52),
+                  left: scale(20),
                 }}
               >
                 Driver Profile
               </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedDriver(null);
+                }}
+                style={{
+                  left: scale(80),
+                  top: scale(52),
+                }} // Add this
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={scale(30)}
+                  style={{ color: "white" }} // Remove top and left
+                />
+              </TouchableOpacity>
             </View>
 
             <View
@@ -255,6 +271,97 @@ function Driver() {
                   </Text>
                 </View>
               </TouchableOpacity>
+            </View>
+          </View>
+          <View style={{ flexDirection: "column", alignItems: "center" }}>
+            <Text
+              style={{
+                color: "black",
+                fontFamily: "Inter-Medium",
+                fontSize: scale(22),
+                top: scale(58),
+              }}
+            >
+              {selectedDriver ? selectedDriver.name : ""}
+            </Text>
+            <Text
+              style={{
+                color: "black",
+                fontFamily: "Inter-Regular",
+                fontSize: scale(12),
+                top: scale(56),
+              }}
+            >
+              {selectedDriver ? selectedDriver.address : ""}
+            </Text>
+            <Text
+              style={{
+                color: "black",
+                fontFamily: "Roboto-Bold",
+                fontSize: scale(16),
+                top: scale(70),
+              }}
+            >
+              Thông tin giấy phép
+            </Text>
+            <View
+              style={{
+                width: "70%",
+                height: scale(200),
+                backgroundColor: colors.Royalblue,
+                top: scale(86),
+                borderRadius: scale(20),
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  width: "30%",
+                  height: "35%",
+                  backgroundColor: "white",
+                  top: scale(20),
+                  borderRadius: scale(30),
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons
+                  name="card-outline"
+                  size={scale(46)}
+                  style={{ color: colors.Royalblue }}
+                ></Ionicons>
+              </View>
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: scale(16),
+                  fontFamily: "Inter-Regular",
+                  fontWeight: 600,
+                  top: scale(40),
+                }}
+              >
+                Ngày cấp bằng:{" "}
+                {selectedDriver
+                  ? new Date(selectedDriver.startDate)
+                      .toISOString()
+                      .split("T")[0]
+                  : ""}
+              </Text>
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: scale(16),
+                  fontFamily: "Inter-Regular",
+                  fontWeight: 600,
+                  top: scale(50),
+                }}
+              >
+                Ngày cấp bằng:{" "}
+                {selectedDriver
+                  ? new Date(selectedDriver.endDate).toISOString().split("T")[0]
+                  : ""}
+              </Text>
             </View>
           </View>
         </View>
