@@ -120,31 +120,42 @@ const AddDriverModal = ({ isVisible, onClose }) => {
     setShow(true);
     setMode(currentMode);
   };
-  const uploadImage = async (filePath) => {
-    let formData = new FormData();
-    let fileName = filePath.split("/").pop();
+  const uploadImages = async (imageUris) => {
+    let filenames = [];
 
-    // Infer the type of the image
-    let match = /\.(\w+)$/.exec(fileName);
-    let type = match ? `image/${match[1]}` : `image`;
+    for (let uri of imageUris) {
+      let formData = new FormData();
+      let fileName = uri.split("/").pop();
 
-    // Append the image
-    formData.append("file", { uri: filePath, name: fileName, type });
+      // Infer the type of the image
+      let match = /\.(\w+)$/.exec(fileName);
+      let type = match ? `image/${match[1]}` : `image`;
 
-    try {
-      const response = await fetch("http://192.168.1.3:8000/upload", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Append the image
+      formData.append("file", { uri: uri, name: fileName, type });
 
-      const data = await response.json();
-      console.log("Success:", data);
-    } catch (error) {
-      console.error("Error:", error);
+      try {
+        const response = await fetch("http://192.168.1.3:8000/upload", {
+          method: "POST",
+          body: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        const data = await response.json();
+        console.log("Success:", data);
+        let filename = data.filename;
+
+        // Assuming the server returns the uploaded filename
+        filenames.push(data.filename);
+        console.log("File names:", filenames);
+      } catch (error) {
+        console.error("Error:", error);
+      }
     }
+
+    return filenames;
   };
   const submitDriver = async () => {
     const driver = createDriver(
@@ -158,7 +169,13 @@ const AddDriverModal = ({ isVisible, onClose }) => {
       endDate
     );
     console.log(driver);
-    uploadImage(imageUri[0]);
+
+    // Wait for uploadImages to complete before assigning its result to driverfilename
+    const driverfilename = await uploadImages(imageUri);
+    console.log("Driver filename:", driverfilename);
+
+    // Now you can use driverfilename
+
     try {
       const response = await fetch("http://192.168.1.3:8000/AddDriver", {
         method: "POST",
@@ -167,7 +184,7 @@ const AddDriverModal = ({ isVisible, onClose }) => {
         },
         body: JSON.stringify({
           ...driver,
-          license: JSON.stringify(driver.license), // convert array to string for sending as JSON
+          license: JSON.stringify(driverfilename), // convert array to string for sending as JSON
         }),
       });
       const data = await response.json();

@@ -6,11 +6,13 @@ const app = express();
 const port = 8000;
 require("./models/Users");
 require("./models/Drivers");
+require("./models/Vehicle");
 
 const cors = require("cors");
 const authRoutes = require("./routes/auth");
 const driverRoutes = require("./routes/driver");
 const uploadRoutes = require("./routes/upload");
+const vehicleRoutes = require("./routes/vehicle");
 
 app.use(cors());
 
@@ -18,6 +20,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(authRoutes);
 app.use(driverRoutes);
+app.use(vehicleRoutes);
 uploadRoutes(app); // Call the function with app as an argument
 
 mongoose

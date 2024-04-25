@@ -36,7 +36,7 @@ const driverSchema = new Schema({
   },
   imageFileId: {
     type: String,
-    required: false, // This field is not required, it can be null if there's no image
+    required: true, // This field is not required, it can be null if there's no image
   },
 });
 

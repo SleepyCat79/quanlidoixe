@@ -6,13 +6,14 @@ import {
   Image,
   SafeAreaView,
   StyleSheet,
+  FlatList,
   ScrollView,
   TouchableOpacity,
   Modal,
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { ScaledSheet, scale } from "react-native-size-matters";
+import { ScaledSheet, s, scale } from "react-native-size-matters";
 import colors from "../assets/colors/color";
 import { Padding, Border } from "../assets/globalstyle";
 import { Picker } from "@react-native-picker/picker";
@@ -37,69 +38,50 @@ async function loadFonts() {
     "Roboto-Regular": require("../assets/fonts/Roboto-Regular.ttf"),
   });
 }
-class Driver {
-  constructor(
-    name,
-    age,
-    experience,
-    address,
-    phoneNumber,
-    license,
-    startDate,
-    endDate
-  ) {
-    this.name = name;
-    this.age = age;
-    this.experience = experience;
-    this.address = address;
-    this.phoneNumber = phoneNumber;
-    this.license = license;
-    this.startDate = startDate;
-    this.endDate = endDate;
-  }
-}
 
-const createDriver = (
-  name,
-  age,
-  experience,
-  address,
-  phoneNumber,
-  imageUri,
-  startDate,
-  endDate
-) => {
-  return new Driver(
-    name,
-    age,
-    experience,
-    address,
-    phoneNumber,
-    imageUri,
-    startDate,
-    endDate
-  );
-};
 const AddVehicle = ({ isVisible, onClose }) => {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
   const [selectedVehicle, setSelectedVehicle] = React.useState("Xe tải");
   const [imageUri, setImageUri] = React.useState([]);
   const [modalVisible, setModalVisible] = React.useState(false);
-
+  const [driver, setDriver] = React.useState("");
   const [modalVisible2, setModalVisible2] = React.useState(false);
-  const [age, setAge] = React.useState("");
-  const [experience, setExperience] = React.useState("");
-  const [address, setAddress] = React.useState("");
-  const [phoneNumber, setPhoneNumber] = React.useState("");
-  const [license, setLicense] = React.useState("");
   const [name, setName] = React.useState("");
-  const [startDate, setStartDate] = React.useState(new Date());
-  const [endDate, setEndDate] = React.useState(new Date());
+  const [weight, setWeight] = React.useState("");
+  const [size, setSize] = React.useState("");
+  const [fuelType, setFuelType] = React.useState("");
+  const [driverShow, setDriverShow] = React.useState(false);
   const [mode, setMode] = React.useState("date");
   const [show, setShow] = React.useState(false);
   const status = ["Đang hoạt động", "Bảo trì"];
   const options = ["Xe tải", "Xe khách", "Xe container"];
   const [selectstatus, setStatus] = React.useState("Tình trạng");
+  const [drivers, setDrivers] = React.useState([]);
+  const [driverName, setDriverName] = React.useState("");
+
+  class Vehicle {
+    constructor(name, option, driver, weight, size, fuelType, status) {
+      this.name = name;
+      this.option = option;
+      this.driver = driver;
+      this.weight = weight;
+      this.size = size;
+      this.fuelType = fuelType;
+      this.status = status;
+    }
+  }
+
+  const createVehicle = (
+    name,
+    option,
+    driver,
+    weight,
+    size,
+    fuelType,
+    status
+  ) => {
+    return new Vehicle(name, option, driver, weight, size, fuelType, status);
+  };
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
@@ -115,6 +97,52 @@ const AddVehicle = ({ isVisible, onClose }) => {
     setShow(true);
     setMode(currentMode);
   };
+  const uploadImages = async (imageUris) => {
+    let filenames = [];
+
+    for (let uri of imageUris) {
+      let formData = new FormData();
+      let fileName = uri.split("/").pop();
+
+      // Infer the type of the image
+      let match = /\.(\w+)$/.exec(fileName);
+      let type = match ? `image/${match[1]}` : `image`;
+
+      // Append the image
+      formData.append("file", { uri: uri, name: fileName, type });
+
+      try {
+        const response = await fetch("http://192.168.1.3:8000/upload", {
+          method: "POST",
+          body: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        const data = await response.json();
+        console.log("Success:", data);
+        let filename = data.filename;
+
+        // Assuming the server returns the uploaded filename
+        filenames.push(data.filename);
+        console.log("File names:", filenames);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+
+    return filenames;
+  };
+  const fetchDrivers = async () => {
+    try {
+      const response = await fetch("http://192.168.1.3:8000/GetDrivers");
+      const data = await response.json();
+      setDrivers(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const selectImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -128,27 +156,34 @@ const AddVehicle = ({ isVisible, onClose }) => {
       setImageUri((oldArray) => [...oldArray, result.assets[0].uri]);
     }
   };
-  const submitDriver = async () => {
-    const driver = createDriver(
+  const submitVehicle = async () => {
+    const vehicle = createVehicle(
       name,
-      age,
-      experience,
-      address,
-      phoneNumber,
-      imageUri,
-      startDate,
-      endDate
+      selectedVehicle,
+      driver,
+      weight,
+      size,
+      fuelType,
+      selectstatus
     );
-    console.log(driver);
+
+    console.log(vehicle);
+
+    // Wait for uploadImages to complete before assigning its result to driverfilename
+    const driverfilename = await uploadImages(imageUri);
+    console.log("Driver filename:", driverfilename);
+
+    // Now you can use driverfilename
+
     try {
-      const response = await fetch("http://192.168.1.3:8000/AddDriver", {
+      const response = await fetch("http://192.168.1.3:8000/AddVehicle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...driver,
-          license: JSON.stringify(driver.license), // convert array to string for sending as JSON
+          ...vehicle,
+          imageFileId: JSON.stringify(driverfilename), // convert array to string for sending as JSON
         }),
       });
       const data = await response.json();
@@ -169,10 +204,52 @@ const AddVehicle = ({ isVisible, onClose }) => {
       } finally {
         setFontsLoaded(true);
       }
+      fetchDrivers();
     }
 
     prepare();
   }, []);
+  const renderDriver = ({ item }) => (
+    <TouchableOpacity
+      onPress={() => {
+        setDriver(item._id);
+        setDriverName(item.name);
+        setDriverShow(false);
+      }}
+      style={{
+        height: scale(55),
+        width: wp("90%"),
+        backgroundColor: "rgba(128, 128, 128, 0.05)", // gray color with 0.1 opacity
+        borderRadius: scale(10),
+        alignSelf: "center",
+        justifyContent: "center",
+        marginTop: scale(20),
+      }}
+    >
+      <Text
+        style={{
+          left: scale(20),
+          top: scale(-3),
+          fontFamily: "Inter-Medium",
+          fontSize: scale(14),
+          color: colors.Royalblue,
+        }}
+      >
+        {item.name}
+      </Text>
+      <Text
+        style={{
+          fontFamily: "Inter-Regular",
+          fontSize: scale(11),
+          color: "black",
+          left: scale(20),
+        }}
+      >
+        {item.address}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <KeyboardAwareScrollView
       style={{ backgroundColor: colors.gradient, flex: 1 }}
@@ -210,6 +287,7 @@ const AddVehicle = ({ isVisible, onClose }) => {
         </View>
         <View style={{ height: "100%" }}>
           <TouchableOpacity
+            onPress={() => setDriverShow(true)}
             style={{
               flexDirection: "column",
               height: "8%",
@@ -246,7 +324,7 @@ const AddVehicle = ({ isVisible, onClose }) => {
                 bottom: scale(35),
               }}
             >
-              John's list
+              {driverName}
             </Text>
             <Ionicons
               name="chevron-forward"
@@ -254,6 +332,13 @@ const AddVehicle = ({ isVisible, onClose }) => {
               size={scale(24)}
             ></Ionicons>
           </TouchableOpacity>
+          <Modal visible={driverShow}>
+            <FlatList
+              data={drivers}
+              keyExtractor={(item) => item._id}
+              renderItem={renderDriver}
+            />
+          </Modal>
           <TouchableOpacity
             style={{
               flexDirection: "row",
@@ -327,7 +412,7 @@ const AddVehicle = ({ isVisible, onClose }) => {
               value={name}
               style={{
                 ...styles.addinput,
-                top: scale(120),
+                top: scale(100),
                 left: scale(10),
                 width: "70%",
                 fontSize: scale(14),
@@ -336,11 +421,11 @@ const AddVehicle = ({ isVisible, onClose }) => {
               }}
               onChangeText={setName}
             ></TextInput>
-            <Text
+            {/* <Text
               style={{ top: scale(150), left: scale(20), fontSize: scale(11) }}
             >
               Ex: Ford F-150
-            </Text>
+            </Text> */}
           </View>
           <View style={{ flexDirection: "row" }}>
             <View style={{ flexDirection: "column" }}>
@@ -348,40 +433,40 @@ const AddVehicle = ({ isVisible, onClose }) => {
                 placeholder="Trọng lượng"
                 placeholderTextColor="rgba(0, 0, 0, 0.75)" // Adjust the last value for opacity
                 keyboardType="ascii-capable"
-                value={name}
+                value={weight}
                 style={{
                   ...styles.addinput,
-                  top: scale(140),
+                  top: scale(110),
                   left: scale(10),
                   width: scale(150),
                   fontSize: scale(14),
                   fontFamily: "Roboto-Regular",
                   color: colors.black,
                 }}
-                onChangeText={setName}
+                onChangeText={setWeight}
               ></TextInput>
-              <Text style={{ top: scale(150), left: scale(20) }}>1 tấn</Text>
+              {/* <Text style={{ top: scale(150), left: scale(20) }}>1 tấn</Text> */}
             </View>
             <View style={{ flexDirection: "column" }}>
               <TextInput
                 placeholder="Kích thước"
                 placeholderTextColor="rgba(0, 0, 0, 0.75)" // Adjust the last value for opacity
                 keyboardType="ascii-capable"
-                value={name}
+                value={size}
                 style={{
                   ...styles.addinput,
-                  top: scale(140),
+                  top: scale(110),
                   left: scale(30),
                   width: scale(150),
                   fontSize: scale(14),
                   fontFamily: "Roboto-Regular",
                   color: colors.black,
                 }}
-                onChangeText={setName}
+                onChangeText={setSize}
               ></TextInput>
-              <Text style={{ top: scale(150), left: scale(40) }}>
+              {/* <Text style={{ top: scale(150), left: scale(40) }}>
                 1995 x 2030 x 6184 (mm)
-              </Text>
+              </Text> */}
             </View>
           </View>
           <View style={{ flexDirection: "row", top: scale(30) }}>
@@ -390,27 +475,27 @@ const AddVehicle = ({ isVisible, onClose }) => {
                 placeholder="Loại nhiên liệu"
                 placeholderTextColor="rgba(0, 0, 0, 0.75)" // Adjust the last value for opacity
                 keyboardType="ascii-capable"
-                value={name}
+                value={fuelType}
                 style={{
                   ...styles.addinput,
-                  top: scale(140),
+                  top: scale(90),
                   left: scale(10),
                   width: scale(150),
                   fontSize: scale(14),
                   fontFamily: "Roboto-Regular",
                   color: colors.black,
                 }}
-                onChangeText={setName}
+                onChangeText={setFuelType}
               ></TextInput>
-              <Text style={{ top: scale(150), left: scale(20) }}>
+              {/* <Text style={{ top: scale(150), left: scale(20) }}>
                 {" "}
                 87 octane
-              </Text>
+              </Text> */}
             </View>
             <TouchableOpacity
               style={{
                 ...styles.addinput,
-                top: scale(132),
+                top: scale(90),
                 left: scale(30),
                 width: scale(150),
               }}
@@ -457,9 +542,10 @@ const AddVehicle = ({ isVisible, onClose }) => {
             </Modal>
           </View>
           <TouchableOpacity
+            onPress={selectImage}
             style={{
               backgroundColor: colors.Royalblue,
-              top: scale(200),
+              top: scale(150),
               height: scale(30),
               width: "90%",
               borderRadius: scale(10),
@@ -470,6 +556,40 @@ const AddVehicle = ({ isVisible, onClose }) => {
           >
             <Text style={{ color: "white" }}>Thêm hình ảnh</Text>
           </TouchableOpacity>
+          <View style={{ flexDirection: "column" }}>
+            <Text style={{ top: scale(170), left: scale(30) }}>Hình ảnh</Text>
+            <View style={{ flexDirection: "row" }}>
+              {imageUri &&
+                imageUri.length > 0 &&
+                imageUri.map((uri, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: uri }}
+                    style={{
+                      width: scale(60),
+                      height: scale(60),
+                      bottom: scale(60),
+                      top: scale(170),
+                      left: scale(30),
+                    }}
+                  />
+                ))}
+            </View>
+            <TouchableOpacity
+              onPress={submitVehicle}
+              style={{
+                width: "90%",
+                height: "20%",
+                backgroundColor: colors.Royalblue,
+                justifyContent: "center",
+                alignItems: "center",
+                alignSelf: "center",
+                top: scale(190),
+              }}
+            >
+              <Text style={{ color: "white" }}>Thêm phương tiện</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </KeyboardAwareScrollView>

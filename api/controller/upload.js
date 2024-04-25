@@ -21,14 +21,16 @@ const uploadFiles = async (req, res) => {
       });
     }
 
+    // Return the filename in the response
     return res.send({
       message: "File has been uploaded.",
+      filename: req.file.filename, // Add this line
     });
   } catch (error) {
     console.log(error);
 
     return res.send({
-      message: "Error when trying upload image: ${error}",
+      message: `Error when trying upload image: ${error}`,
     });
   }
 };
