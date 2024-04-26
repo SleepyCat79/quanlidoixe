@@ -34,6 +34,10 @@ const vehicleSchema = new Schema({
     type: [String],
     required: false, // This field is not required, it can be null if there's no image
   },
+  lastmaintenance: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Vehicle", vehicleSchema);

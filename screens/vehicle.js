@@ -11,9 +11,11 @@ import {
   TouchableOpacity,
   TextInput,
   ImageBackground,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 import {
   widthPercentageToDP as wp,
@@ -34,9 +36,13 @@ async function loadFonts() {
 }
 
 function Vehicle() {
+  const navigation = useNavigation();
+
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
   const [vehicles, setVehicles] = React.useState([]);
-  const [selectedDriver, setSelectedDriver] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const [selectedVehicle, setselectedVehicle] = React.useState(null);
   const [imageFileIdArray, setImageFileIdArray] = React.useState(null);
 
   const isFocused = useIsFocused();
@@ -56,7 +62,7 @@ function Vehicle() {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      onPress={() => setSelectedDriver(item)}
+      onPress={() => setselectedVehicle(item)}
       style={{
         height: scale(55),
         width: wp("90%"),
@@ -96,7 +102,7 @@ function Vehicle() {
   React.useEffect(() => {
     if (isFocused) {
       const fetchVehicle = async () => {
-        const response = await fetch("http://192.168.1.3:8000/GetVehicle");
+        const response = await fetch("http://10.0.2.2:8000/GetVehicle");
         const data = await response.json();
         setVehicles(data);
       };
@@ -107,29 +113,36 @@ function Vehicle() {
 
   React.useEffect(() => {
     if (
-      selectedDriver &&
-      selectedDriver.imageFileId &&
-      selectedDriver.imageFileId[0]
+      selectedVehicle &&
+      selectedVehicle.imageFileId &&
+      selectedVehicle.imageFileId[0]
     ) {
       try {
-        const parsedArray = JSON.parse(selectedDriver.imageFileId[0]);
+        const parsedArray = JSON.parse(selectedVehicle.imageFileId[0]);
         if (parsedArray && parsedArray[0]) {
           setImageFileIdArray(parsedArray);
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error parsing JSON:", error);
+        setIsLoading(false);
       }
+    } else {
+      setIsLoading(false);
     }
-    console.log(imageFileIdArray);
-  }, [selectedDriver]);
+  }, [selectedVehicle]);
+
+  if (isLoading) {
+    return <ActivityIndicator />; // or some other loading indicator
+  }
   return (
     <View style={{ width: "100%", height: "70%", backgroundColor: "white" }}>
       <Modal
         animationType="slide"
         transparent={true}
-        visible={selectedDriver !== null}
+        visible={selectedVehicle !== null}
         onRequestClose={() => {
-          setSelectedDriver(null);
+          setselectedVehicle(null);
         }}
       >
         <View
@@ -139,79 +152,116 @@ function Vehicle() {
             <ImageBackground
               source={{
                 uri:
-                  selectedDriver &&
-                  selectedDriver.imageFileId &&
-                  imageFileIdArray[0]
-                    ? `http://192.168.1.3:8000/files/${imageFileIdArray[0]}`
+                  imageFileIdArray && imageFileIdArray[0]
+                    ? `http://10.0.2.2:8000/files/${imageFileIdArray[0]}`
                     : null,
               }}
               style={{
                 flexDirection: "column",
                 height: "100%",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
               <View
                 style={{
-                  backgroundColor: "white",
-                  opacity: 0.5, // Change this value to adjust the opacity
+                  backgroundColor: "black",
+                  opacity: 0.4, // Change this value to adjust the opacity
                   flex: 1,
+                  width: "100%",
+                  height: "100%",
                 }}
               />
+              <Text
+                style={{
+                  textAlign: "center",
+                  position: "absolute",
+                  fontFamily: "Inter-Medium",
+                  color: "white",
+                  fontSize: scale(16),
+                  fontWeight: "bold",
+                }}
+              >
+                Thông tin phương tiện
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setselectedVehicle(null);
+                }}
+                style={{
+                  position: "absolute",
+                  left: scale(10),
+                  top: scale(52),
+                }} // Add this
+              >
+                <Ionicons
+                  name="close-sharp"
+                  size={scale(30)}
+                  style={{ color: "white" }} // Remove top and left
+                />
+              </TouchableOpacity>
             </ImageBackground>
           </View>
 
           <View
             style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              // Add this
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedDriver(null);
-              }}
+            <View
               style={{
-                position: "absolute",
-                left: scale(10),
-                top: scale(52),
-              }} // Add this
-            >
-              <Ionicons
-                name="close-sharp"
-                size={scale(30)}
-                style={{ color: "white" }} // Remove top and left
-              />
-            </TouchableOpacity>
-            <Text
-              style={{
-                color: "white",
-                fontFamily: "Roboto-Bold",
-                fontSize: scale(17),
-                top: scale(52),
+                top: scale(20),
+                flexDirection: "row",
+                alignItems: "center",
               }}
             >
-              Thông tin phương tiện
-            </Text>
-          </View>
-          <View style={{ flexDirection: "column", alignItems: "center" }}>
-            <Text
-              style={{
-                color: "black",
-                fontFamily: "Inter-Medium",
-                fontSize: scale(22),
-                top: scale(58),
-              }}
-            >
-              {selectedDriver ? selectedDriver.name : ""}
-            </Text>
-            {selectedDriver && selectedDriver.imageFileId ? (
-              <Image
-                source={{
-                  uri: `http://192.168.1.3:8000/files/${selectedDriver.imageFileId}`,
-                }}
-              />
-            ) : null}
+              <View style={{ flexDirection: "column" }}>
+                <Text style={{ color: "gray", fontSize: scale(12) }}>
+                  Tên phương tiện
+                </Text>
+                <Text
+                  style={{
+                    color: "black",
+                    fontFamily: "Inter-Medium",
+                    fontWeight: "bold",
+                    fontSize: scale(14),
+                  }}
+                >
+                  {selectedVehicle ? selectedVehicle.name : ""}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "column", paddingLeft: scale(20) }}>
+                <Text style={{ color: "gray", fontSize: scale(12) }}>
+                  Tình trạng
+                </Text>
+                <Text
+                  style={{
+                    color: "black",
+                    fontFamily: "Inter-Medium",
+                    fontWeight: "bold",
+                    fontSize: scale(14),
+                  }}
+                >
+                  {selectedVehicle ? selectedVehicle.status : ""}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "column", paddingLeft: scale(20) }}>
+                <Text style={{ color: "gray", fontSize: scale(12) }}>
+                  Lần cuối bảo trì
+                </Text>
+                <Text
+                  style={{
+                    color: "black",
+                    fontFamily: "Inter-Medium",
+                    fontWeight: "bold",
+                    fontSize: scale(14),
+                  }}
+                >
+                  {selectedVehicle ? selectedVehicle.lastmaintenance : ""}
+                </Text>
+              </View>
+            </View>
             <Text
               style={{
                 color: "black",
@@ -220,47 +270,197 @@ function Vehicle() {
                 top: scale(56),
               }}
             >
-              {selectedDriver ? selectedDriver.address : ""}
+              {selectedVehicle ? selectedVehicle.address : ""}
             </Text>
-            <Text
+
+            <TouchableOpacity
               style={{
-                color: "black",
-                fontFamily: "Roboto-Bold",
-                fontSize: scale(16),
-                top: scale(70),
+                width: "90%",
+                height: scale(70),
+                backgroundColor: colors.Royalblue,
+                top: scale(36),
+                borderRadius: scale(20),
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+              onPress={() => {
+                setselectedVehicle(null);
+                navigation.navigate("Drivers", {
+                  driverId: selectedVehicle.driver,
+                });
               }}
             >
-              Thông tin giấy phép
-            </Text>
+              <Ionicons
+                name="people-circle"
+                size={scale(36)}
+                style={{ color: "white", left: scale(30) }}
+              ></Ionicons>
+              <Text
+                style={{
+                  left: scale(50),
+                  fontFamily: "Inter-Medium",
+                  color: "white",
+                }}
+              >
+                Kiểm tra tài xế
+              </Text>
+              <Ionicons
+                name="chevron-forward-sharp"
+                size={scale(36)}
+                style={{ color: "white", left: scale(130) }}
+              ></Ionicons>
+            </TouchableOpacity>
             <View
               style={{
-                width: "70%",
-                height: scale(200),
-                backgroundColor: colors.Royalblue,
-                top: scale(86),
-                borderRadius: scale(20),
-                flexDirection: "column",
+                flexDirection: "row",
+                width: "100%",
+                height: "60%",
                 alignItems: "center",
+                justifyContent: "center",
               }}
             >
               <View
                 style={{
+                  backgroundColor: colors.Royalblue,
+                  height: "60%",
                   width: "30%",
-                  height: "35%",
-                  backgroundColor: "white",
-                  top: scale(20),
-                  borderRadius: scale(30),
-                  justifyContent: "center",
+                  borderRadius: scale(20),
                   alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  marginRight: scale(10),
                 }}
               >
-                {selectedDriver && selectedDriver.imageFileId ? (
-                  <Image
-                    source={{
-                      uri: `http://192.168.1.3:8000/files/1714068871337-bezkoder-4e110b03-0102-4dd3-acb7-bec54375b10b.jpeg`,
-                    }}
-                  />
-                ) : null}
+                <View
+                  style={{
+                    height: "40%",
+                    width: "60%",
+                    borderRadius: scale(60),
+                    backgroundColor: "white",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons
+                    name="eyedrop-outline"
+                    size={scale(30)}
+                    style={{ color: colors.Royalblue }}
+                  ></Ionicons>
+                </View>
+                <Text
+                  style={{
+                    fontFamily: "Inter-Medium",
+                    color: "white",
+                    top: scale(5),
+                  }}
+                >
+                  Loại nhiên liệu
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter-Medium",
+                    color: "white",
+                    top: scale(5),
+                  }}
+                >
+                  {" "}
+                  {selectedVehicle ? selectedVehicle.fuelType : ""}
+                </Text>
+              </View>
+              <View
+                style={{
+                  backgroundColor: colors.Royalblue,
+                  height: "60%",
+                  width: "30%",
+                  borderRadius: scale(20),
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  marginRight: scale(10),
+                }}
+              >
+                <View
+                  style={{
+                    height: "40%",
+                    width: "60%",
+                    borderRadius: scale(60),
+                    backgroundColor: "white",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons
+                    name="logo-apple-ar"
+                    size={scale(30)}
+                    style={{ color: colors.Royalblue }}
+                  ></Ionicons>
+                </View>
+                <Text
+                  style={{
+                    fontFamily: "Inter-Medium",
+                    color: "white",
+                    top: scale(5),
+                  }}
+                >
+                  Kích thước
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter-Medium",
+                    color: "white",
+                    top: scale(5),
+                  }}
+                >
+                  {" "}
+                  {selectedVehicle ? selectedVehicle.size : ""}
+                </Text>
+              </View>
+              <View
+                style={{
+                  backgroundColor: colors.Royalblue,
+                  height: "60%",
+                  width: "30%",
+                  borderRadius: scale(20),
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                }}
+              >
+                <View
+                  style={{
+                    height: "40%",
+                    width: "60%",
+                    borderRadius: scale(60),
+                    backgroundColor: "white",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons
+                    name="reorder-three-outline"
+                    size={scale(30)}
+                    style={{ color: colors.Royalblue }}
+                  ></Ionicons>
+                </View>
+                <Text
+                  style={{
+                    fontFamily: "Inter-Medium",
+                    color: "white",
+                    top: scale(5),
+                  }}
+                >
+                  Trọng lượng
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter-Medium",
+                    color: "white",
+                    top: scale(5),
+                  }}
+                >
+                  {" "}
+                  {selectedVehicle ? selectedVehicle.weight : ""}
+                </Text>
               </View>
             </View>
           </View>

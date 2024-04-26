@@ -32,31 +32,42 @@ async function loadFonts() {
   });
 }
 
-const data = [
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  { name: "Huy Vo", location: "Ho Chi Minh" },
-  // Add more items here
-];
-
-function Driver() {
+function Driver({ route, navigation }) {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
   const [drivers, setDrivers] = React.useState([]);
   const [selectedDriver, setSelectedDriver] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(false); // Add a loading state
+  const [imageFileIdArray, setImageFileIdArray] = React.useState(null);
 
   const isFocused = useIsFocused();
+  React.useEffect(() => {
+    // Only proceed if route.params is defined
+    if (route.params) {
+      const { driverId } = route.params;
+
+      // Only fetch driver data if driverId is present
+      if (driverId) {
+        setIsLoading(true); // Set loading state to true
+        // Fetch the driver data using the driverId
+        fetch(`http://10.0.2.2:8000/GetDriver/${driverId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            // Set the fetched driver data as the selected driver
+            setSelectedDriver(data);
+            setIsLoading(false); // Set loading state to false
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            setIsLoading(false); // Set loading state to false
+          });
+      }
+    }
+  }, [route.params]); // Add route.params as a dependency
 
   React.useEffect(() => {
     if (isFocused) {
       const fetchDrivers = async () => {
-        const response = await fetch("http://192.168.1.3:8000/GetDrivers");
+        const response = await fetch("http://10.0.2.2:8000/GetDrivers");
         const data = await response.json();
         setDrivers(data);
       };
@@ -117,13 +128,29 @@ function Driver() {
 
     prepare();
   }, []);
+  React.useEffect(() => {
+    if (selectedDriver && selectedDriver.license && selectedDriver.license[0]) {
+      try {
+        const parsedArray = JSON.parse(selectedDriver.license[0]);
+        if (parsedArray && parsedArray[0]) {
+          setImageFileIdArray(parsedArray);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+        setIsLoading(false);
+      }
+    } else {
+      setIsLoading(false);
+    }
+  }, [selectedDriver]);
 
   return (
     <View style={{ width: "100%", height: "70%", backgroundColor: "white" }}>
       <Modal
         animationType="slide"
         transparent={true}
-        visible={selectedDriver !== null}
+        visible={selectedDriver !== null && !isLoading} // Modify the visible prop to also depend on the loading state
         onRequestClose={() => {
           setSelectedDriver(null);
         }}
@@ -239,7 +266,12 @@ function Driver() {
               >
                 <Image
                   style={{ height: scale(90), width: scale(90) }}
-                  source={tsu}
+                  source={{
+                    uri:
+                      imageFileIdArray && imageFileIdArray[0]
+                        ? `http://10.0.2.2:8000/files/${imageFileIdArray[0]}`
+                        : null, // Assuming tsu is a string URL
+                  }}
                 />
               </View>
               <TouchableOpacity>

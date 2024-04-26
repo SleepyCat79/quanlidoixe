@@ -135,7 +135,7 @@ const AddDriverModal = ({ isVisible, onClose }) => {
       formData.append("file", { uri: uri, name: fileName, type });
 
       try {
-        const response = await fetch("http://192.168.1.3:8000/upload", {
+        const response = await fetch("http://10.0.2.2:8000/upload", {
           method: "POST",
           body: formData,
           headers: {
@@ -177,7 +177,7 @@ const AddDriverModal = ({ isVisible, onClose }) => {
     // Now you can use driverfilename
 
     try {
-      const response = await fetch("http://192.168.1.3:8000/AddDriver", {
+      const response = await fetch("http://10.0.2.2:8000/AddDriver", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

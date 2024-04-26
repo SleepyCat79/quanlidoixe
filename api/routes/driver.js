@@ -65,4 +65,22 @@ router.get("/GetDrivers", async (req, res) => {
   const drivers = await Driver.find();
   res.json(drivers);
 });
+
+router.get("/GetDriver/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const driver = await Driver.findById(id);
+    if (!driver) {
+      return res.status(404).json({
+        error: "Driver not found",
+      });
+    }
+    res.json(driver);
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+});
 module.exports = router;

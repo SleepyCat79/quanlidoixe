@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  Modal,
+  FlatList,
   TextInput,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -46,7 +48,14 @@ async function loadFonts() {
 
 function Homepage() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
-
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [data, setData] = React.useState([]);
+  React.useEffect(() => {
+    fetch("http://10.0.2.2:8000/getmaintain")
+      .then((response) => response.json())
+      .then((json) => setData(json))
+      .catch((error) => console.error(error));
+  }, []);
   React.useEffect(() => {
     async function prepare() {
       try {
@@ -159,11 +168,62 @@ function Homepage() {
         >
           Lịch bảo trì
         </Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
           <Text style={{ right: scale(20), color: "#666", opacity: 0.7 }}>
             Chi tiết
           </Text>
         </TouchableOpacity>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "column",
+            }}
+          >
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons
+                  name="chevron-back-sharp"
+                  size={scale(26)}
+                  style={{ bottom: scale(280), right: scale(80) }}
+                ></Ionicons>
+              </TouchableOpacity>
+              <Text
+                style={{
+                  bottom: scale(270),
+                  fontFamily: "Inter-Medium",
+                  fontSize: scale(16),
+                  right: scale(10),
+                }}
+              >
+                Lịch sử bảo dưỡng
+              </Text>
+            </View>
+            <FlatList
+              data={data}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <View>
+                  <Text>Type: {item.type}</Text>
+                  <Text>Date: {item.date}</Text>
+                  <Text>Vehicle: {item.vehicle}</Text>
+                  <Text>Cost: {item.cost}</Text>
+                </View>
+              )}
+            />
+          </View>
+        </Modal>
       </View>
       <View style={{ flexDirection: "column" }}>
         <View

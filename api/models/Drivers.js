@@ -34,10 +34,6 @@ const driverSchema = new Schema({
     type: String,
     required: true,
   },
-  imageFileId: {
-    type: String,
-    required: true, // This field is not required, it can be null if there's no image
-  },
 });
 
 module.exports = mongoose.model("Driver", driverSchema);

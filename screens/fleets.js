@@ -169,13 +169,7 @@ function Fleet() {
         >
           Đội xe
         </Text>
-        <TouchableOpacity>
-          <Ionicons
-            name="search"
-            size={scale(20)}
-            style={{ color: "white", top: scale(100), left: scale(110) }}
-          ></Ionicons>
-        </TouchableOpacity>
+
         <TouchableOpacity onPress={handleAddButtonPress}>
           <Ionicons
             name="add"

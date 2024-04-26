@@ -112,7 +112,7 @@ const AddVehicle = ({ isVisible, onClose }) => {
       formData.append("file", { uri: uri, name: fileName, type });
 
       try {
-        const response = await fetch("http://192.168.1.3:8000/upload", {
+        const response = await fetch("http://10.0.2.2:8000/upload", {
           method: "POST",
           body: formData,
           headers: {
@@ -136,7 +136,7 @@ const AddVehicle = ({ isVisible, onClose }) => {
   };
   const fetchDrivers = async () => {
     try {
-      const response = await fetch("http://192.168.1.3:8000/GetDrivers");
+      const response = await fetch("http://10.0.2.2:8000/GetDrivers");
       const data = await response.json();
       setDrivers(data);
     } catch (error) {
@@ -176,14 +176,14 @@ const AddVehicle = ({ isVisible, onClose }) => {
     // Now you can use driverfilename
 
     try {
-      const response = await fetch("http://192.168.1.3:8000/AddVehicle", {
+      const response = await fetch("http://10.0.2.2:8000/AddVehicle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...vehicle,
-          imageFileId: JSON.stringify(driverfilename), // convert array to string for sending as JSON
+          imageFileId: JSON.stringify(driverfilename),
         }),
       });
       const data = await response.json();

@@ -7,12 +7,14 @@ const port = 8000;
 require("./models/Users");
 require("./models/Drivers");
 require("./models/Vehicle");
+require("./models/Maintaince");
 
 const cors = require("cors");
 const authRoutes = require("./routes/auth");
 const driverRoutes = require("./routes/driver");
 const uploadRoutes = require("./routes/upload");
 const vehicleRoutes = require("./routes/vehicle");
+const maintainceRoutes = require("./routes/maintain");
 
 app.use(cors());
 
@@ -21,6 +23,7 @@ app.use(bodyParser.json());
 app.use(authRoutes);
 app.use(driverRoutes);
 app.use(vehicleRoutes);
+app.use(maintainceRoutes);
 uploadRoutes(app); // Call the function with app as an argument
 
 mongoose

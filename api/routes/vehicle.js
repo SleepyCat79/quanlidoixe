@@ -43,6 +43,7 @@ router.post("/AddVehicle", async (req, res) => {
       fuelType,
       status,
       imageFileId,
+      lastmaintenance: "Chưa bảo trì",
     });
     await vehicle.save();
     res.json({
