@@ -4,6 +4,7 @@ import {
   Text,
   Button,
   Image,
+  Alert,
   SafeAreaView,
   StyleSheet,
   FlatList,
@@ -157,6 +158,22 @@ const AddVehicle = ({ isVisible, onClose }) => {
     }
   };
   const submitVehicle = async () => {
+    if (
+      !name ||
+      !selectedVehicle ||
+      !driver ||
+      !weight ||
+      !size ||
+      !fuelType ||
+      !selectstatus ||
+      !imageUri
+    ) {
+      Alert.alert("Missing fields", "Vui lòng điền đầy đủ thông tin.", [
+        { text: "OK" },
+      ]);
+      return;
+    }
+
     const vehicle = createVehicle(
       name,
       selectedVehicle,
@@ -169,11 +186,8 @@ const AddVehicle = ({ isVisible, onClose }) => {
 
     console.log(vehicle);
 
-    // Wait for uploadImages to complete before assigning its result to driverfilename
     const driverfilename = await uploadImages(imageUri);
     console.log("Driver filename:", driverfilename);
-
-    // Now you can use driverfilename
 
     try {
       const response = await fetch("http://10.0.2.2:8000/AddVehicle", {
@@ -186,12 +200,31 @@ const AddVehicle = ({ isVisible, onClose }) => {
           imageFileId: JSON.stringify(driverfilename),
         }),
       });
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          Alert.alert(
+            "Error",
+            "Tài xế này đã được đăng ký cho phương tiện khác",
+            [{ text: "OK" }]
+          );
+        } else {
+          throw new Error("HTTP error " + response.status);
+        }
+        return;
+      }
+
       const data = await response.json();
       console.log(data);
 
-      console.log("Success:", data);
+      Alert.alert("Success", "Phương tiện đã được thêm", [{ text: "OK" }]);
     } catch (error) {
       console.error(error);
+      Alert.alert(
+        "Error",
+        "Đã có lỗi xảy ra khi thêm phương tiện. Vui lòng thử lại sau.",
+        [{ text: "OK" }]
+      );
     }
   };
 

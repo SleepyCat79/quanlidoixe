@@ -6,6 +6,7 @@ import {
   Image,
   SafeAreaView,
   StyleSheet,
+  Alert,
   ScrollView,
   TouchableOpacity,
   Modal,
@@ -90,15 +91,25 @@ const AddDriverModal = ({ isVisible, onClose }) => {
   const [startDate, setStartDate] = React.useState(new Date());
   const [endDate, setEndDate] = React.useState(new Date());
   const [mode, setMode] = React.useState("date");
-  const [show, setShow] = React.useState(false);
-
+  const [startShow, setStartShow] = React.useState(false);
+  const [endShow, setEndShow] = React.useState(false);
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
-    setShow(Platform.OS === "ios");
     if (mode === "start") {
       setStartDate(currentDate);
+      setStartShow(Platform.OS === "ios"); // hide start date picker
     } else {
       setEndDate(currentDate);
+      setEndShow(Platform.OS === "ios"); // hide end date picker
+    }
+  };
+
+  const showDatepicker = (currentMode) => {
+    setMode(currentMode);
+    if (currentMode === "start") {
+      setStartShow(true); // show start date picker
+    } else {
+      setEndShow(true); // show end date picker
     }
   };
 
@@ -116,10 +127,6 @@ const AddDriverModal = ({ isVisible, onClose }) => {
     }
   };
 
-  const showDatepicker = (currentMode) => {
-    setShow(true);
-    setMode(currentMode);
-  };
   const uploadImages = async (imageUris) => {
     let filenames = [];
 
@@ -158,25 +165,38 @@ const AddDriverModal = ({ isVisible, onClose }) => {
     return filenames;
   };
   const submitDriver = async () => {
-    const driver = createDriver(
-      name,
-      age,
-      experience,
-      address,
-      phoneNumber,
-      imageUri,
-      startDate,
-      endDate
-    );
-    console.log(driver);
-
-    // Wait for uploadImages to complete before assigning its result to driverfilename
-    const driverfilename = await uploadImages(imageUri);
-    console.log("Driver filename:", driverfilename);
-
-    // Now you can use driverfilename
+    if (
+      !name ||
+      !age ||
+      !experience ||
+      !address ||
+      !phoneNumber ||
+      !imageUri ||
+      !startDate ||
+      !endDate
+    ) {
+      Alert.alert("Missing fields", "Vui lòng điền đầy đủ thông tin.", [
+        { text: "OK" },
+      ]);
+      return;
+    }
 
     try {
+      const driver = createDriver(
+        name,
+        age,
+        experience,
+        address,
+        phoneNumber,
+        imageUri,
+        startDate,
+        endDate
+      );
+      console.log(driver);
+
+      const driverfilename = await uploadImages(imageUri);
+      console.log("Driver filename:", driverfilename);
+
       const response = await fetch("http://10.0.2.2:8000/AddDriver", {
         method: "POST",
         headers: {
@@ -184,15 +204,25 @@ const AddDriverModal = ({ isVisible, onClose }) => {
         },
         body: JSON.stringify({
           ...driver,
-          license: JSON.stringify(driverfilename), // convert array to string for sending as JSON
+          license: JSON.stringify(driverfilename),
         }),
       });
+
+      if (!response.ok) {
+        throw new Error("HTTP error " + response.status);
+      }
+
       const data = await response.json();
       console.log(data);
 
-      console.log("Success:", data);
+      Alert.alert("Success", "Tài xế đã được thêm.", [{ text: "OK" }]);
     } catch (error) {
       console.error(error);
+      Alert.alert(
+        "Error",
+        "Đã có lỗi xảy ra khi thêm tài xế. Vui lòng thử lại sau.",
+        [{ text: "OK" }]
+      );
     }
   };
 
@@ -340,7 +370,7 @@ const AddDriverModal = ({ isVisible, onClose }) => {
               }}
               onPress={() => showDatepicker("start")}
             >
-              {show && (
+              {startShow && (
                 <DateTimePicker
                   testID="dateTimePicker"
                   value={startDate}
@@ -370,7 +400,7 @@ const AddDriverModal = ({ isVisible, onClose }) => {
               }}
               onPress={() => showDatepicker("end")}
             >
-              {show && (
+              {endShow && (
                 <DateTimePicker
                   testID="dateTimePicker"
                   value={endDate}

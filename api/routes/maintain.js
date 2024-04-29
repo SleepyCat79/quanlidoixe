@@ -4,7 +4,7 @@ const router = express.Router();
 const Maintaince = mongoose.model("Maintaince");
 
 router.post("/newmaintain", async (req, res) => {
-  const { type, date, vehicle, cost } = req.body;
+  const { type, name, date, vehicle, vehiclename, cost } = req.body;
   const ismaintain = await Maintaince.findOne({ vehicle });
   if (ismaintain) {
     return res
@@ -12,7 +12,14 @@ router.post("/newmaintain", async (req, res) => {
       .json({ error: "Maintaince already exists with that vehicle" });
   }
   try {
-    const maintaince = new Maintaince({ type, date, vehicle, cost });
+    const maintaince = new Maintaince({
+      type,
+      name,
+      date,
+      vehicle,
+      vehiclename,
+      cost,
+    });
     await maintaince.save();
     res.json({ status: "success" });
   } catch (err) {
