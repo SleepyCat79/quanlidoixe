@@ -277,7 +277,13 @@ function Driver({ route, navigation }) {
                 Driver Profile
               </Text>
               <TouchableOpacity
-                onPress={() => setModalVisible2(true)}
+                onPress={() => {
+                  if (data !== null) {
+                    setModalVisible2(true);
+                  } else {
+                    alert("Tài xế chưa có lịch thực hiện bất kì chuyến xe nào");
+                  }
+                }}
                 style={{
                   left: scale(80),
                   top: scale(52),
