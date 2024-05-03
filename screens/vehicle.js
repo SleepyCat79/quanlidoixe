@@ -475,7 +475,6 @@ function Vehicle() {
               <Button
                 title="Xóa phương tiện"
                 onPress={async () => {
-                  console.log("Deleting vehicle:", selectedVehicle._id);
                   try {
                     const response = await fetch(
                       `https://quanlidoixe-p8k7.vercel.app/DeleteVehicle/${selectedVehicle._id}`,

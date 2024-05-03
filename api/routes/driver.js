@@ -87,7 +87,7 @@ router.delete("/DeleteDriver/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const driver = await Driver.findByIdAndRemove(id);
+    const driver = await Driver.deleteOne({ _id: id });
     if (!driver) {
       return res.status(404).json({
         error: "Driver not found",

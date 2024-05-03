@@ -64,8 +64,8 @@ router.delete("/DeleteVehicle/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const vehicle = await Vehicle.findByIdAndRemove(id);
-    if (!vehicle) {
+    const result = await Vehicle.deleteOne({ _id: id });
+    if (result.deletedCount === 0) {
       return res.status(404).json({
         error: "Vehicle not found",
       });
