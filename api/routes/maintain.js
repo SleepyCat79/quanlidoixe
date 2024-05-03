@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
 const Maintaince = mongoose.model("Maintaince");
+const Vehicle = mongoose.model("Vehicle");
 
 router.post("/newmaintain", async (req, res) => {
   const { type, name, date, vehicle, vehiclename, cost } = req.body;
@@ -21,6 +22,8 @@ router.post("/newmaintain", async (req, res) => {
       cost,
     });
     await maintaince.save();
+    await Vehicle.findByIdAndUpdate(vehicle, { lastmaintenance: date });
+
     res.json({ status: "success" });
   } catch (err) {
     return res.status(422).json({ error: err.message });

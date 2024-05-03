@@ -48,7 +48,7 @@ function SignIn() {
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
   const handleSignIn = async () => {
     try {
-      const response = await fetch("http://192.168.1.3:8000/signin", {
+      const response = await fetch("http://192.168.1.8:8000/signin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +153,7 @@ function SignIn() {
         </View>
         <TouchableOpacity
           style={{ top: scale(0), left: scale(220) }}
-          onPress={() => navigation.navigate("SignIn")}
+          onPress={() => navigation.navigate("SignUp")}
         >
           <Text style={{ color: "#429690", fontFamily: "Roboto-Regular" }}>
             Chưa có tài khoản?

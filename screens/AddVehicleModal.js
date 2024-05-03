@@ -345,7 +345,7 @@ const AddVehicle = ({ isVisible, onClose }) => {
                   color: colors.black,
                 }}
               >
-                Thêm tài xế
+                Chọn tài xế
               </Text>
             </View>
             <Text

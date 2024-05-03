@@ -258,7 +258,11 @@ function Vehicle() {
                     fontSize: scale(14),
                   }}
                 >
-                  {selectedVehicle ? selectedVehicle.lastmaintenance : ""}
+                  {selectedVehicle
+                    ? new Date(selectedVehicle.lastmaintenance)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""}
                 </Text>
               </View>
             </View>

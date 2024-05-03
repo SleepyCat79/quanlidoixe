@@ -54,6 +54,20 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen
+          name="SignUp"
+          component={SignUp}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="SignIn"
+          component={SignIn}
+          options={{
+            headerShown: false,
+          }}
+        />
         {isUserLoggedIn ? (
           <Stack.Screen
             name="MaintainScreen"
@@ -63,32 +77,15 @@ export default function App() {
             }}
           />
         ) : (
-          <>
-            <Stack.Screen
-              name="SignUp"
-              component={SignUp}
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="SignIn"
-              component={SignIn}
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="MaintainScreen"
-              component={MaintainScreen}
-              options={{
-                headerShown: false,
-              }}
-            />
-          </>
+          <Stack.Screen
+            name="MaintainScreen"
+            component={MaintainScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
         )}
       </Stack.Navigator>
-      {/* Add this closing tag */}
     </NavigationContainer>
   );
 }

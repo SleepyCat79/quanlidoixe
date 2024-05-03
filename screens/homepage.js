@@ -579,6 +579,7 @@ function Homepage() {
                   <View
                     style={{
                       flexDirection: "row",
+                      justifyContent: "space-between", // Add this line
                       alignItems: "center",
                       height: scale(50),
                       margin: scale(10),
@@ -586,52 +587,58 @@ function Homepage() {
                   >
                     <View
                       style={{
-                        backgroundColor: "white",
-                        height: scale(30),
-                        width: scale(30),
-                        borderRadius: scale(10),
-                        justifyContent: "center",
-                        alignItems: "center",
-                        left: scale(10),
-                        marginRight: scale(20),
+                        flexDirection: "row", // Add this line
+                        alignItems: "center", // Add this line
                       }}
                     >
-                      {item.type === "Thay nhiên liệu" ? (
-                        <Ionicons
-                          name="color-fill-outline"
-                          size={24}
-                          color={colors.Royalblue}
-                        />
-                      ) : (
-                        <Ionicons
-                          name="build-outline"
-                          size={24}
-                          color={colors.Royalblue}
-                        />
-                      )}
-                    </View>
-                    <View style={{ flexDirection: "column" }}>
-                      <Text
+                      <View
                         style={{
-                          color: index % 2 === 0 ? "black" : "white",
-                          fontFamily: "Inter-Medium",
+                          backgroundColor: "white",
+                          height: scale(30),
+                          width: scale(30),
+                          borderRadius: scale(10),
+                          justifyContent: "center",
+                          alignItems: "center",
+                          left: scale(10),
+                          marginRight: scale(20),
                         }}
                       >
-                        {item.name}
-                      </Text>
-                      <Text
-                        style={{
-                          color: index % 2 === 0 ? "black" : "white",
-                          fontSize: scale(10),
-                        }}
-                      >
-                        {item.vehiclename}
-                      </Text>
+                        {item.type === "Thay nhiên liệu" ? (
+                          <Ionicons
+                            name="color-fill-outline"
+                            size={24}
+                            color={colors.Royalblue}
+                          />
+                        ) : (
+                          <Ionicons
+                            name="build-outline"
+                            size={24}
+                            color={colors.Royalblue}
+                          />
+                        )}
+                      </View>
+                      <View style={{ flexDirection: "column" }}>
+                        <Text
+                          style={{
+                            color: index % 2 === 0 ? "black" : "white",
+                            fontFamily: "Inter-Medium",
+                          }}
+                        >
+                          {item.name}
+                        </Text>
+                        <Text
+                          style={{
+                            color: index % 2 === 0 ? "black" : "white",
+                            fontSize: scale(10),
+                          }}
+                        >
+                          {item.vehiclename}
+                        </Text>
+                      </View>
                     </View>
                     <Text
                       style={{
                         color: index % 2 === 0 ? "red" : "white",
-                        left: scale(120),
                         fontFamily: "Inter-Medium",
                         fontSize: scale(14),
                       }}
