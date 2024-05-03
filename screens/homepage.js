@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import colors from "../assets/colors/color";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,6 +39,7 @@ import {
   StackedBarChart,
 } from "react-native-chart-kit";
 import { ScaledSheet, scale } from "react-native-size-matters";
+import { set } from "mongoose";
 async function loadFonts() {
   await Font.loadAsync({
     "Inter-Bold": require("../assets/fonts/Inter-Bold.otf"),
@@ -52,6 +54,8 @@ async function loadFonts() {
 function Homepage() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
   const [modalVisible, setModalVisible] = React.useState(false);
+  const [modalVisible3, setModalVisible3] = React.useState(false);
+  const [tongloinhuan, setTongloinhuan] = React.useState(0);
   const [maintainVisible, setMaintainVisible] = React.useState(false);
   const [type, setType] = React.useState("Chọn loại bảo dưỡng");
   const options = ["Thay nhiên liệu", "Sửa chữa linh kiện"];
@@ -64,14 +68,34 @@ function Homepage() {
   const [vehicleShow, setVehicleShow] = React.useState(false);
   const [selectedVehicle, setSelectedVehicle] = React.useState("");
   const [show, setShow] = React.useState(false);
+  const [user, setUser] = React.useState(null);
+  const [userLoaded, setUserLoaded] = React.useState(false);
 
   const [data, setData] = React.useState([]);
+  const [data2, setData2] = React.useState([]);
+
   React.useEffect(() => {
-    fetch("http://10.0.2.2:8000/getmaintain")
+    fetch("https://quanlidoixe-p8k7.vercel.app/getmaintain")
       .then((response) => response.json())
       .then((json) => setData(json))
       .catch((error) => console.error(error));
   }, [maintainVisible]);
+
+  React.useEffect(() => {
+    fetch("http://10.0.2.2:8000/schedule")
+      .then((response) => response.json())
+      .then((json) => {
+        setData2(json);
+        const sumOfLoinhuan = json.reduce(
+          (sum, item) => sum + item.loinhuan,
+          0
+        );
+        setTongloinhuan(sumOfLoinhuan);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }, [modalVisible3]);
   React.useEffect(() => {
     async function prepare() {
       try {
@@ -103,21 +127,24 @@ function Homepage() {
         return;
       }
 
-      const response = await fetch("http://10.0.2.2:8000/newmaintain", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type,
-          name,
-          date,
-          vehicle,
-          vehiclename,
-          cost,
-          // Add the other fields here
-        }),
-      });
+      const response = await fetch(
+        "https://quanlidoixe-p8k7.vercel.app/newmaintain",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type,
+            name,
+            date,
+            vehicle,
+            vehiclename,
+            cost,
+            // Add the other fields here
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -147,14 +174,23 @@ function Homepage() {
   };
   const fetchDrivers = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:8000/GetVehicle");
+      const response = await fetch(
+        "https://quanlidoixe-p8k7.vercel.app/GetVehicle"
+      );
       const data = await response.json();
       setSelectedVehicle(data);
     } catch (error) {
       console.error(error);
     }
   };
+
   React.useEffect(() => {
+    const fetchUser = async () => {
+      const userData = JSON.parse(await AsyncStorage.getItem("user"));
+      setUser(userData);
+      setUserLoaded(true); // Set userLoaded to true after the user data is set
+    };
+
     async function prepare() {
       try {
         await SplashScreen.preventAutoHideAsync();
@@ -163,11 +199,16 @@ function Homepage() {
       } finally {
         setFontsLoaded(true);
       }
+
       fetchDrivers();
+      fetchUser();
     }
 
     prepare();
   }, []);
+  if (!userLoaded) {
+    return null; // Or return a loading spinner
+  }
   const renderDriver = ({ item }) => (
     <TouchableOpacity
       onPress={() => {
@@ -221,7 +262,8 @@ function Homepage() {
           left: scale(40),
         }}
       >
-        Welcome, {"\n"} <Text style={{ color: colors.Royalblue }}>Huy Vo</Text>
+        Welcome, {"\n"}{" "}
+        <Text style={{ color: colors.Royalblue }}>{user.name}</Text>
       </Text>
       <View
         style={{
@@ -238,13 +280,191 @@ function Homepage() {
             fontSize: scale(16),
           }}
         >
-          Doanh Thu
+          Lợi nhuận
         </Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setModalVisible3(true)}>
           <Text style={{ right: scale(20), color: "#666", opacity: 0.7 }}>
             Chi tiết
           </Text>
         </TouchableOpacity>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible3}
+          onRequestClose={() => {
+            setModalVisible3(!modalVisible);
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "column",
+            }}
+          >
+            <View style={{ flexDirection: "row", top: scale(60) }}>
+              <TouchableOpacity onPress={() => setModalVisible3(false)}>
+                <Ionicons
+                  name="chevron-back-sharp"
+                  size={scale(26)}
+                  style={{ right: scale(60) }}
+                ></Ionicons>
+              </TouchableOpacity>
+              <Text
+                style={{
+                  fontFamily: "Inter-Medium",
+                  fontSize: scale(16),
+                }}
+              >
+                Sao kê lợi nhuận
+              </Text>
+            </View>
+            <Text
+              style={{
+                top: scale(60),
+                left: scale(10),
+                fontFamily: "Roboto-Bold",
+                color: colors.Royalblue,
+              }}
+            >
+              Tổng lợi nhuận: ${tongloinhuan}
+            </Text>
+            <FlatList
+              style={{ top: scale(80), width: "90%" }}
+              data={data2}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item, index }) => (
+                <View
+                  style={{
+                    marginBottom: scale(10),
+                    borderRadius: scale(10),
+                    height: scale(120),
+                    backgroundColor:
+                      index % 2 === 0 ? "white" : colors.Royalblue,
+                    borderColor:
+                      index % 2 === 0 ? colors.Royalblue : "transparent",
+                    borderWidth: 1, // Set the border width
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between", // Add this line
+                      alignItems: "center",
+                      height: scale(50),
+                      margin: scale(10),
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row", // Add this line
+                        alignItems: "center", // Add this line
+                      }}
+                    >
+                      <View style={{ flexDirection: "column", width: "80%" }}>
+                        <View style={{ flexDirection: "row", top: scale(10) }}>
+                          <View
+                            style={{
+                              backgroundColor: "white",
+                              height: scale(30),
+                              width: scale(30),
+                              borderRadius: scale(10),
+                              justifyContent: "center",
+                              alignItems: "center",
+                              left: scale(10),
+                              marginRight: scale(20),
+                              borderWidth: 1,
+                              borderColor: colors.Royalblue,
+                            }}
+                          >
+                            <Ionicons
+                              name="pin-outline"
+                              size={24}
+                              color={colors.Royalblue}
+                            />
+                          </View>
+                          <Text
+                            style={{
+                              color: index % 2 === 0 ? "black" : "white",
+                              fontFamily: "Inter-Medium",
+                              fontSize: scale(10),
+                            }}
+                          >
+                            {item.start.split(",")[0]}
+                          </Text>
+                        </View>
+                        <View style={{ flexDirection: "row" }}>
+                          <Ionicons
+                            name="arrow-down"
+                            size={24}
+                            style={{ left: scale(15), top: scale(10) }}
+                            color={index % 2 === 0 ? colors.Royalblue : "white"}
+                          />
+                        </View>
+                        <View style={{ flexDirection: "row", top: scale(25) }}>
+                          <View
+                            style={{
+                              backgroundColor: "white",
+                              height: scale(30),
+                              width: scale(30),
+                              borderRadius: scale(10),
+                              justifyContent: "center",
+                              alignItems: "center",
+                              left: scale(10),
+                              marginRight: scale(20),
+                              borderWidth: 1,
+                              borderColor: colors.Royalblue,
+                            }}
+                          >
+                            <Ionicons
+                              name="send-outline"
+                              size={24}
+                              color={colors.Royalblue}
+                            />
+                          </View>
+                          <Text
+                            style={{
+                              color: index % 2 === 0 ? "black" : "white",
+                              fontSize: scale(10),
+                              fontFamily: "Inter-Medium",
+                              top: scale(5),
+                            }}
+                          >
+                            {item.end.split(",")[0]}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: "column" }}>
+                      <Text
+                        style={{
+                          top: scale(20),
+                          right: scale(60),
+                          color: index % 2 === 0 ? colors.Royalblue : "white",
+                        }}
+                      >
+                        Khoảng cách: {item.distance}km
+                      </Text>
+                      <Text
+                        style={{
+                          color: index % 2 === 0 ? "green" : "white",
+                          fontFamily: "Inter-Medium",
+                          fontSize: scale(12),
+                          top: scale(60),
+                          right: scale(10),
+                        }}
+                      >
+                        + $ {item.loinhuan}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            />
+          </View>
+        </Modal>
       </View>
       <LineChart
         data={{
@@ -653,136 +873,56 @@ function Homepage() {
         </Modal>
       </View>
       <View style={{ flexDirection: "column" }}>
-        <View
-          style={{
-            height: scale(55),
-            width: wp("90%"),
-            backgroundColor: "rgba(128, 128, 128, 0.05)", // gray color with 0.1 opacity
-            borderRadius: scale(10),
-            top: scale(-80),
-            alignSelf: "center",
-            justifyContent: "center",
-          }}
-        >
-          <View style={{ flexDirection: "row" }}>
-            <Ionicons
-              name="build-outline"
-              size={scale(25)}
-              style={{
-                color: colors.Royalblue,
-                left: scale(5),
-              }}
-            ></Ionicons>
+        {data.slice(0, 3).map((item, index) => (
+          <View
+            key={index}
+            style={{
+              height: scale(55),
+              width: wp("90%"),
+              backgroundColor:
+                index === 1 ? "#1488D8" : "rgba(128, 128, 128, 0.05)", // gray color with 0.1 opacity
+              borderRadius: scale(10),
+              top: scale(-80),
+              alignSelf: "center",
+              justifyContent: "center",
+              marginTop: index !== 0 ? scale(10) : 0,
+              marginBottom: index !== 0 ? scale(10) : 0,
+            }}
+          >
+            <View style={{ flexDirection: "row" }}>
+              <Ionicons
+                name="build-outline"
+                size={scale(25)}
+                style={{
+                  color: index % 2 != 0 ? "white" : colors.Royalblue,
+                  left: scale(5),
+                }}
+              ></Ionicons>
+              <Text
+                style={{
+                  left: scale(20),
+                  top: scale(-5),
+                  fontFamily: "Inter-Medium",
+                  fontSize: scale(14),
+                  color: index % 2 != 0 ? "white" : "black",
+                }}
+              >
+                {item.name}
+              </Text>
+            </View>
             <Text
               style={{
-                left: scale(20),
-                top: scale(-5),
+                left: scale(45),
+                bottom: scale(5),
                 fontFamily: "Inter-Medium",
-                fontSize: scale(14),
+                fontSize: scale(12),
+                color: index % 2 === 0 ? colors.Royalblue : "white",
               }}
             >
-              Maintaince Vehicle
-            </Text>
-            <Text
-              style={{
-                fontFamily: "Inter-Regular",
-                fontSize: scale(11),
-                top: scale(7),
-                right: scale(108),
-              }}
-            >
-              {"\n"} Due On: Jan 20, 2022
+              Due on: {new Date(item.date).toISOString().split("T")[0]}{" "}
             </Text>
           </View>
-        </View>
-        <View
-          style={{
-            height: scale(55),
-            width: wp("90%"),
-            backgroundColor: "#1488D8", // gray color with 0.1 opacity
-            borderRadius: scale(10),
-            top: scale(-80),
-            alignSelf: "center",
-            marginTop: scale(20),
-            marginBottom: scale(20),
-            justifyContent: "center",
-          }}
-        >
-          <View style={{ flexDirection: "row" }}>
-            <Ionicons
-              name="build-outline"
-              size={scale(25)}
-              style={{
-                color: "white",
-                left: scale(5),
-              }}
-            ></Ionicons>
-            <Text
-              style={{
-                left: scale(20),
-                top: scale(-5),
-                fontFamily: "Inter-Medium",
-                fontSize: scale(14),
-                color: "white",
-              }}
-            >
-              Maintaince Vehicle
-            </Text>
-            <Text
-              style={{
-                fontFamily: "Inter-Regular",
-                fontSize: scale(11),
-                top: scale(7),
-                color: "white",
-                right: scale(108),
-              }}
-            >
-              {"\n"} Due On: Jan 20, 2022
-            </Text>
-          </View>
-        </View>
-        <View
-          style={{
-            height: scale(55),
-            width: wp("90%"),
-            backgroundColor: "rgba(128, 128, 128, 0.05)", // gray color with 0.1 opacity
-            borderRadius: scale(10),
-            top: scale(-80),
-            alignSelf: "center",
-            justifyContent: "center",
-          }}
-        >
-          <View style={{ flexDirection: "row" }}>
-            <Ionicons
-              name="build-outline"
-              size={scale(25)}
-              style={{
-                color: colors.Royalblue,
-                left: scale(5),
-              }}
-            ></Ionicons>
-            <Text
-              style={{
-                left: scale(20),
-                top: scale(-5),
-                fontFamily: "Inter-Medium",
-                fontSize: scale(14),
-              }}
-            >
-              Maintaince Vehicle
-            </Text>
-            <Text
-              style={{
-                fontFamily: "Inter-Regular",
-                fontSize: scale(11),
-                top: scale(7),
-                right: scale(108),
-              }}
-            >
-              {"\n"} Due On: Jan 20, 2022
-            </Text>
-          </View>
-        </View>
+        ))}
       </View>
     </SafeAreaView>
   );

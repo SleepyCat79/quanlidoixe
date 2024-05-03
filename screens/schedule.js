@@ -13,6 +13,8 @@ import Autocomplete from "react-native-autocomplete-input";
 import * as Location from "expo-location";
 import { Polyline } from "react-native-maps";
 import { ScaledSheet, scale } from "react-native-size-matters";
+import DateTimePicker from "@react-native-community/datetimepicker";
+
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -45,6 +47,9 @@ export default function Schedule() {
   const [duration, setDuration] = useState(null);
   const [doanhthu, setDoanhthu] = useState(null);
   const [distance, setDistance] = useState(null);
+  const [show, setShow] = React.useState(false);
+  const [date, setDate] = React.useState(new Date());
+
   const fetchRoute = async (origin, destination) => {
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}?geometries=geojson&access_token=pk.eyJ1Ijoic2xlZXB5Y2F0NzkiLCJhIjoiY2x2MnFlaWxhMGtwdTJxcXY3d28yMjdzNyJ9.SERIf1nsEuT_LMNoAFmE5Q`;
     const response = await fetch(url);
@@ -57,7 +62,15 @@ export default function Schedule() {
       longitude,
     }));
   };
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShow(Platform.OS === "ios");
+    setDate(currentDate);
+  };
 
+  const showDatepicker = () => {
+    setShow(true);
+  };
   const handleSubmit = () => {
     if (startLocation && destination) {
       setShowMap(true);
@@ -70,6 +83,34 @@ export default function Schedule() {
       const response = await fetch("http://10.0.2.2:8000/GetDrivers");
       const data = await response.json();
       setDrivers(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const schedule = async () => {
+    try {
+      const response = await fetch("http://10.0.2.2:8000/schedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          driver,
+          doanhthu,
+          start: startLocationText,
+          end: destinationText,
+          distance: Math.round(distance / 1000),
+          time: Math.round(duration / 60),
+          date: date,
+        }),
+      });
+      const data = await response.json();
+      console.log(data);
+
+      // If the request is successful, display an alert
+      if (response.ok) {
+        alert("Đã lên lịch thành công");
+      }
     } catch (error) {
       console.error(error);
     }
@@ -264,6 +305,38 @@ export default function Schedule() {
           onChangeText={setDoanhthu}
         ></TextInput>
       </View>
+      <TouchableOpacity
+        style={{
+          borderColor: "black",
+          borderWidth: 1.5,
+          width: wp("45%"),
+          height: hp("4%"),
+          bottom: scale(50),
+          borderStyle: "solid",
+          justifyContent: "center",
+          alignItems: "center",
+          left: scale(100),
+          flexDirection: "row",
+          alignSelf: "center",
+
+          alignSelf: "flex-start",
+        }}
+        onPress={showDatepicker}
+      >
+        {show && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={date}
+            mode={"date"}
+            is24Hour={true}
+            display="default"
+            onChange={onChange}
+          />
+        )}
+        <Text style={{ flexShrink: 1 }}>
+          {date ? date.toLocaleDateString() : "Ngày di chuyển"}
+        </Text>
+      </TouchableOpacity>
       <View
         style={{
           width: "100%",
@@ -301,6 +374,7 @@ export default function Schedule() {
                         latitudeDelta: 0.015,
                         longitudeDelta: 0.0121,
                       };
+
                       setStartLocation(newLocation);
                       setStartLocationText(item);
                       setRegion(newLocation);
@@ -363,8 +437,13 @@ export default function Schedule() {
           />
         </View>
       </View>
-      <View style={{ bottom: scale(80) }}>
-        <Text style={{ fontFamily: "Inter-Medium", fontSize: scale(14) }}>
+      <View style={{ bottom: scale(80), left: scale(10) }}>
+        <Text
+          style={{
+            fontFamily: "Inter-Medium",
+            fontSize: scale(14),
+          }}
+        >
           Thời gian dự kiến:{" "}
           {uocluong && duration ? Math.round(duration / 60) + " phút" : ""}
         </Text>
@@ -372,6 +451,16 @@ export default function Schedule() {
         <Text style={{ fontFamily: "Inter-Medium", fontSize: scale(14) }}>
           Ước lượng khoảng cách:{" "}
           {uocluong && distance ? Math.round(distance / 1000) + " km" : ""}
+        </Text>
+        <Text
+          style={{
+            fontFamily: "Inter-Medium",
+            fontSize: scale(14),
+            color: colors.Royalblue,
+          }}
+        >
+          Ước lượng lợi nhuận:{" "}
+          {uocluong ? doanhthu - Math.round(distance / 1000) * 0.85 + " $" : ""}
         </Text>
       </View>
       <TouchableOpacity
@@ -400,7 +489,7 @@ export default function Schedule() {
         </Text>
       </TouchableOpacity>
       <View style={{ bottom: scale(40) }}>
-        <Button title="Lên lịch"></Button>
+        <Button title="Lên lịch" onPress={schedule}></Button>
       </View>
       {showMap && region && (
         <MapView style={{ flex: 1 }} initialRegion={region}>

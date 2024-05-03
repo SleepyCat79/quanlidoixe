@@ -38,6 +38,9 @@ function Driver({ route, navigation }) {
   const [selectedDriver, setSelectedDriver] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false); // Add a loading state
   const [imageFileIdArray, setImageFileIdArray] = React.useState(null);
+  const [data, setData] = React.useState([]);
+  const [modalVisible2, setModalVisible2] = React.useState(false);
+  const [tongloinhuan, setTongloinhuan] = React.useState(0);
 
   const isFocused = useIsFocused();
   React.useEffect(() => {
@@ -49,7 +52,7 @@ function Driver({ route, navigation }) {
       if (driverId) {
         setIsLoading(true); // Set loading state to true
         // Fetch the driver data using the driverId
-        fetch(`http://10.0.2.2:8000/GetDriver/${driverId}`)
+        fetch(`https://quanlidoixe-p8k7.vercel.app/GetDriver/${driverId}`)
           .then((response) => response.json())
           .then((data) => {
             // Set the fetched driver data as the selected driver
@@ -67,7 +70,9 @@ function Driver({ route, navigation }) {
   React.useEffect(() => {
     if (isFocused) {
       const fetchDrivers = async () => {
-        const response = await fetch("http://10.0.2.2:8000/GetDrivers");
+        const response = await fetch(
+          "https://quanlidoixe-p8k7.vercel.app/GetDrivers"
+        );
         const data = await response.json();
         setDrivers(data);
       };
@@ -129,17 +134,84 @@ function Driver({ route, navigation }) {
     prepare();
   }, []);
   React.useEffect(() => {
-    if (selectedDriver && selectedDriver.license && selectedDriver.license[0]) {
-      try {
-        const parsedArray = JSON.parse(selectedDriver.license[0]);
-        if (parsedArray && parsedArray[0]) {
-          setImageFileIdArray(parsedArray);
+    if (selectedDriver) {
+      console.log("DATA", data);
+      fetch(`http://10.0.2.2:8000/schedule/${selectedDriver._id}`)
+        .then((response) => response.json())
+        .then((scheduleData) => {
+          setData(scheduleData);
+          if (Array.isArray(scheduleData)) {
+            const tongloinhuan = scheduleData.reduce(
+              (sum, item) => sum + item.loinhuan,
+              0
+            );
+            setTongloinhuan(tongloinhuan);
+          } else if (
+            typeof scheduleData === "object" &&
+            scheduleData !== null
+          ) {
+            setTongloinhuan(scheduleData.loinhuan || 0);
+          } else {
+            console.error(
+              "scheduleData is neither an array nor an object:",
+              scheduleData
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+  }, [modalVisible2]);
+  React.useEffect(() => {
+    if (selectedDriver) {
+      if (selectedDriver.license && selectedDriver.license[0]) {
+        try {
+          const parsedArray = JSON.parse(selectedDriver.license[0]);
+          if (parsedArray && parsedArray[0]) {
+            setImageFileIdArray(parsedArray);
+            setIsLoading(false);
+          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
           setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Error parsing JSON:", error);
-        setIsLoading(false);
       }
+
+      setIsLoading(true); // Set loading state to true
+
+      // Fetch the schedule data using the selected driver's ID
+      fetch(`http://10.0.2.2:8000/schedule/${selectedDriver._id}`)
+        .then((response) => response.json())
+        .then((scheduleData) => {
+          setData(scheduleData); // Set the fetched schedule data to the data state
+
+          // Sum all of loinhuan and set to tongloinhuan
+          if (Array.isArray(scheduleData)) {
+            const tongloinhuan = scheduleData.reduce(
+              (sum, item) => sum + item.loinhuan,
+              0
+            );
+            setTongloinhuan(tongloinhuan);
+          } else if (
+            typeof scheduleData === "object" &&
+            scheduleData !== null
+          ) {
+            setTongloinhuan(scheduleData.loinhuan || 0);
+          } else {
+            console.error(
+              "scheduleData is neither an array nor an object:",
+              scheduleData
+            );
+          }
+
+          setIsLoading(false); // Set loading state to false
+          console.log(data); // Log the data after it's set
+        })
+        .catch((error) => {
+          console.error("Error fetching schedule data:", error);
+          setIsLoading(false); // Set loading state to false
+        });
     } else {
       setIsLoading(false);
     }
@@ -200,9 +272,7 @@ function Driver({ route, navigation }) {
                 Driver Profile
               </Text>
               <TouchableOpacity
-                onPress={() => {
-                  setSelectedDriver(null);
-                }}
+                onPress={() => setModalVisible2(true)}
                 style={{
                   left: scale(80),
                   top: scale(52),
@@ -215,7 +285,193 @@ function Driver({ route, navigation }) {
                 />
               </TouchableOpacity>
             </View>
-
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisible2}
+              onRequestClose={() => {
+                setModalVisible2(!modalVisible2);
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "white",
+                  height: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexDirection: "column",
+                }}
+              >
+                <View style={{ flexDirection: "row", top: scale(60) }}>
+                  <TouchableOpacity onPress={() => setModalVisible2(false)}>
+                    <Ionicons
+                      name="chevron-back-sharp"
+                      size={scale(26)}
+                      style={{ right: scale(60) }}
+                    ></Ionicons>
+                  </TouchableOpacity>
+                  <Text
+                    style={{
+                      fontFamily: "Inter-Medium",
+                      fontSize: scale(16),
+                    }}
+                  >
+                    Sao kê lợi nhuận
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    top: scale(60),
+                    left: scale(10),
+                    fontFamily: "Roboto-Bold",
+                    color: colors.Royalblue,
+                  }}
+                >
+                  Tổng lợi nhuận: ${tongloinhuan}
+                </Text>
+                <FlatList
+                  style={{ top: scale(80), width: "90%" }}
+                  data={Array.isArray(data) ? data : [data]}
+                  keyExtractor={(item) => item._id}
+                  renderItem={({ item, index }) => (
+                    <View
+                      style={{
+                        marginBottom: scale(10),
+                        borderRadius: scale(10),
+                        height: scale(120),
+                        backgroundColor:
+                          index % 2 === 0 ? "white" : colors.Royalblue,
+                        borderColor:
+                          index % 2 === 0 ? colors.Royalblue : "transparent",
+                        borderWidth: 1, // Set the border width
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between", // Add this line
+                          alignItems: "center",
+                          height: scale(50),
+                          margin: scale(10),
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row", // Add this line
+                            alignItems: "center", // Add this line
+                          }}
+                        >
+                          <View
+                            style={{ flexDirection: "column", width: "80%" }}
+                          >
+                            <View
+                              style={{ flexDirection: "row", top: scale(10) }}
+                            >
+                              <View
+                                style={{
+                                  backgroundColor: "white",
+                                  height: scale(30),
+                                  width: scale(30),
+                                  borderRadius: scale(10),
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  left: scale(10),
+                                  marginRight: scale(20),
+                                  borderWidth: 1,
+                                  borderColor: colors.Royalblue,
+                                }}
+                              >
+                                <Ionicons
+                                  name="pin-outline"
+                                  size={24}
+                                  color={colors.Royalblue}
+                                />
+                              </View>
+                              <Text
+                                style={{
+                                  color: index % 2 === 0 ? "black" : "white",
+                                  fontFamily: "Inter-Medium",
+                                  fontSize: scale(10),
+                                }}
+                              >
+                                {item.start.split(",")[0]}
+                              </Text>
+                            </View>
+                            <View style={{ flexDirection: "row" }}>
+                              <Ionicons
+                                name="arrow-down"
+                                size={24}
+                                style={{ left: scale(15), top: scale(10) }}
+                                color={
+                                  index % 2 === 0 ? colors.Royalblue : "white"
+                                }
+                              />
+                            </View>
+                            <View
+                              style={{ flexDirection: "row", top: scale(25) }}
+                            >
+                              <View
+                                style={{
+                                  backgroundColor: "white",
+                                  height: scale(30),
+                                  width: scale(30),
+                                  borderRadius: scale(10),
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  left: scale(10),
+                                  marginRight: scale(20),
+                                  borderWidth: 1,
+                                  borderColor: colors.Royalblue,
+                                }}
+                              >
+                                <Ionicons
+                                  name="send-outline"
+                                  size={24}
+                                  color={colors.Royalblue}
+                                />
+                              </View>
+                              <Text
+                                style={{
+                                  color: index % 2 === 0 ? "black" : "white",
+                                  fontSize: scale(10),
+                                  fontFamily: "Inter-Medium",
+                                  top: scale(5),
+                                }}
+                              >
+                                {item.end.split(",")[0]}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                        <View style={{ flexDirection: "column" }}>
+                          <Text
+                            style={{
+                              top: scale(20),
+                              right: scale(60),
+                              color:
+                                index % 2 === 0 ? colors.Royalblue : "white",
+                            }}
+                          >
+                            Khoảng cách: {item.distance}km
+                          </Text>
+                          <Text
+                            style={{
+                              color: index % 2 === 0 ? "green" : "white",
+                              fontFamily: "Inter-Medium",
+                              fontSize: scale(12),
+                              top: scale(60),
+                              right: scale(10),
+                            }}
+                          >
+                            + $ {item.loinhuan}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                />
+              </View>
+            </Modal>
             <View
               style={{
                 flexDirection: "row",
@@ -223,36 +479,6 @@ function Driver({ route, navigation }) {
                 alignItems: "center",
               }}
             >
-              <TouchableOpacity>
-                <View
-                  style={{
-                    width: scale(60),
-                    borderRadius: scale(10),
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: scale(50),
-                    backgroundColor: "#EDEAE0",
-                    top: scale(90),
-                    flexDirection: "column",
-                    right: scale(40),
-                  }}
-                >
-                  <Ionicons
-                    name="call-outline"
-                    size={scale(18)}
-                    style={{ color: colors.Royalblue }}
-                  />
-                  <Text
-                    style={{
-                      color: colors.Royalblue,
-                      fontFamily: "Roboto-Regular",
-                    }}
-                  >
-                    Call
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
               <View
                 style={{
                   height: scale(100),
@@ -274,35 +500,6 @@ function Driver({ route, navigation }) {
                   }}
                 />
               </View>
-              <TouchableOpacity>
-                <View
-                  style={{
-                    width: scale(60),
-                    borderRadius: scale(10),
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: scale(50),
-                    backgroundColor: "#EDEAE0",
-                    top: scale(90),
-                    flexDirection: "column",
-                    left: scale(40),
-                  }}
-                >
-                  <Ionicons
-                    name="mail-outline"
-                    size={scale(18)}
-                    style={{ color: colors.Royalblue }}
-                  />
-                  <Text
-                    style={{
-                      color: colors.Royalblue,
-                      fontFamily: "Roboto-Regular",
-                    }}
-                  >
-                    Mail
-                  </Text>
-                </View>
-              </TouchableOpacity>
             </View>
           </View>
           <View style={{ flexDirection: "column", alignItems: "center" }}>

@@ -50,13 +50,20 @@ function SignUp() {
 
   const handleSignUp = async () => {
     try {
-      const response = await fetch("http://192.168.1.3:8000/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: name, email: Email, password: password }),
-      });
+      const response = await fetch(
+        "https://quanlidoixe-p8k7.vercel.app/signup",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: name,
+            email: Email,
+            password: password,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();

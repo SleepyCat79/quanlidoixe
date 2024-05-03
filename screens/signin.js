@@ -48,23 +48,31 @@ function SignIn() {
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
   const handleSignIn = async () => {
     try {
-      const response = await fetch("http://192.168.1.8:8000/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: Email, password: password }),
-      });
+      const response = await fetch(
+        "https://quanlidoixe-p8k7.vercel.app/signin",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: Email, password: password }),
+        }
+      );
+
+      const data = await response.json();
 
       if (!response.ok) {
-        const errorData = await response.json();
+        // Handle error data
+        console.error("Error signing in:", data);
       } else {
         // Store user's login status in AsyncStorage
-        await AsyncStorage.setItem("user", "loggedIn");
+        await AsyncStorage.setItem("user", JSON.stringify(data));
+        const user = JSON.parse(await AsyncStorage.getItem("user"));
+        console.log("User data:", user);
         navigation.navigate("MaintainScreen");
       }
     } catch (error) {
-      console.error("Failed to sign up:", error);
+      console.error("Failed to sign in:", error);
     }
   };
   React.useEffect(() => {

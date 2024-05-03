@@ -142,13 +142,16 @@ const AddDriverModal = ({ isVisible, onClose }) => {
       formData.append("file", { uri: uri, name: fileName, type });
 
       try {
-        const response = await fetch("http://10.0.2.2:8000/upload", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await fetch(
+          "https://quanlidoixe-p8k7.vercel.app/upload",
+          {
+            method: "POST",
+            body: formData,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
         const data = await response.json();
         console.log("Success:", data);
@@ -197,16 +200,19 @@ const AddDriverModal = ({ isVisible, onClose }) => {
       const driverfilename = await uploadImages(imageUri);
       console.log("Driver filename:", driverfilename);
 
-      const response = await fetch("http://10.0.2.2:8000/AddDriver", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...driver,
-          license: JSON.stringify(driverfilename),
-        }),
-      });
+      const response = await fetch(
+        "https://quanlidoixe-p8k7.vercel.app/AddDriver",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...driver,
+            license: JSON.stringify(driverfilename),
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("HTTP error " + response.status);

@@ -102,7 +102,9 @@ function Vehicle() {
   React.useEffect(() => {
     if (isFocused) {
       const fetchVehicle = async () => {
-        const response = await fetch("http://10.0.2.2:8000/GetVehicle");
+        const response = await fetch(
+          "https://quanlidoixe-p8k7.vercel.app/GetVehicle"
+        );
         const data = await response.json();
         setVehicles(data);
       };
