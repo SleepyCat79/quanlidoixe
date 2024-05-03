@@ -82,7 +82,7 @@ function Homepage() {
   }, [maintainVisible]);
 
   React.useEffect(() => {
-    fetch("http://10.0.2.2:8000/schedule")
+    fetch("https://quanlidoixe-p8k7.vercel.app/schedule")
       .then((response) => response.json())
       .then((json) => {
         setData2(json);

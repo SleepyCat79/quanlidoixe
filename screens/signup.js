@@ -49,6 +49,11 @@ function SignUp() {
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
 
   const handleSignUp = async () => {
+    if (!name || !Email || !password) {
+      alert("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+
     try {
       const response = await fetch(
         "https://quanlidoixe-p8k7.vercel.app/signup",
@@ -68,13 +73,14 @@ function SignUp() {
       if (!response.ok) {
         const errorData = await response.json();
         if (response.status === 422) {
-          // assuming the server returns 409 for existing accounts
-          alert("Account already exists");
+          alert("Tài khoản đã tồn tại");
         } else {
           throw new Error(
             `HTTP status ${response.status}, data: ${JSON.stringify(errorData)}`
           );
         }
+      } else {
+        alert("Đăng ký thành công");
       }
     } catch (error) {
       console.error("Failed to sign up:", error);

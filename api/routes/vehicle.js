@@ -60,4 +60,24 @@ router.get("/GetVehicle", async (req, res) => {
   const vehicles = await Vehicle.find();
   res.json(vehicles);
 });
+router.delete("/DeleteVehicle/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const vehicle = await Vehicle.findByIdAndRemove(id);
+    if (!vehicle) {
+      return res.status(404).json({
+        error: "Vehicle not found",
+      });
+    }
+    res.json({
+      status: "success",
+      message: "Vehicle deleted successfully",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+});
 module.exports = router;

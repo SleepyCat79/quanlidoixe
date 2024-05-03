@@ -155,7 +155,7 @@ function Vehicle() {
               source={{
                 uri:
                   imageFileIdArray && imageFileIdArray[0]
-                    ? `http://10.0.2.2:8000/files/${imageFileIdArray[0]}`
+                    ? `https://quanlidoixe-p8k7.vercel.app/files/${imageFileIdArray[0]}`
                     : null,
               }}
               style={{
@@ -261,9 +261,11 @@ function Vehicle() {
                   }}
                 >
                   {selectedVehicle
-                    ? new Date(selectedVehicle.lastmaintenance)
-                        .toISOString()
-                        .split("T")[0]
+                    ? isNaN(Date.parse(selectedVehicle.lastmaintenance))
+                      ? selectedVehicle.lastmaintenance
+                      : new Date(selectedVehicle.lastmaintenance)
+                          .toISOString()
+                          .split("T")[0]
                     : ""}
                 </Text>
               </View>
@@ -468,6 +470,34 @@ function Vehicle() {
                   {selectedVehicle ? selectedVehicle.weight : ""}
                 </Text>
               </View>
+            </View>
+            <View style={{ bottom: scale(60) }}>
+              <Button
+                title="Xóa phương tiện"
+                onPress={async () => {
+                  console.log("Deleting vehicle:", selectedVehicle._id);
+                  try {
+                    const response = await fetch(
+                      `https://quanlidoixe-p8k7.vercel.app/DeleteVehicle/${selectedVehicle._id}`,
+                      {
+                        method: "DELETE",
+                      }
+                    );
+
+                    if (!response.ok) {
+                      throw new Error(`HTTP status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.status === "success") {
+                      alert("Vehicle deleted successfully");
+                    }
+                  } catch (error) {
+                    console.error("Failed to delete vehicle:", error);
+                  }
+                }}
+              />
             </View>
           </View>
         </View>

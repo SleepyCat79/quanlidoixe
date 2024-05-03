@@ -136,7 +136,9 @@ function Driver({ route, navigation }) {
   React.useEffect(() => {
     if (selectedDriver) {
       console.log("DATA", data);
-      fetch(`http://10.0.2.2:8000/schedule/${selectedDriver._id}`)
+      fetch(
+        `https://quanlidoixe-p8k7.vercel.app/schedule/${selectedDriver._id}`
+      )
         .then((response) => response.json())
         .then((scheduleData) => {
           setData(scheduleData);
@@ -181,7 +183,9 @@ function Driver({ route, navigation }) {
       setIsLoading(true); // Set loading state to true
 
       // Fetch the schedule data using the selected driver's ID
-      fetch(`http://10.0.2.2:8000/schedule/${selectedDriver._id}`)
+      fetch(
+        `https://quanlidoixe-p8k7.vercel.app/schedule/${selectedDriver._id}`
+      )
         .then((response) => response.json())
         .then((scheduleData) => {
           setData(scheduleData); // Set the fetched schedule data to the data state
@@ -252,6 +256,7 @@ function Driver({ route, navigation }) {
                   position: "absolute",
                   left: scale(10),
                   top: scale(52),
+                  zIndex: 100,
                 }} // Add this
               >
                 <Ionicons
@@ -495,7 +500,7 @@ function Driver({ route, navigation }) {
                   source={{
                     uri:
                       imageFileIdArray && imageFileIdArray[0]
-                        ? `http://10.0.2.2:8000/files/${imageFileIdArray[0]}`
+                        ? `https://quanlidoixe-p8k7.vercel.app/files/${imageFileIdArray[0]}`
                         : null, // Assuming tsu is a string URL
                   }}
                 />

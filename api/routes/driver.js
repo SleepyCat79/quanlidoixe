@@ -83,4 +83,25 @@ router.get("/GetDriver/:id", async (req, res) => {
     });
   }
 });
+router.delete("/DeleteDriver/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const driver = await Driver.findByIdAndRemove(id);
+    if (!driver) {
+      return res.status(404).json({
+        error: "Driver not found",
+      });
+    }
+    res.json({
+      status: "success",
+      message: "Driver deleted successfully",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+});
+
 module.exports = router;

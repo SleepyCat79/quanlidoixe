@@ -80,7 +80,9 @@ export default function Schedule() {
   };
   const fetchDrivers = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:8000/GetDrivers");
+      const response = await fetch(
+        "https://quanlidoixe-p8k7.vercel.app/GetDrivers"
+      );
       const data = await response.json();
       setDrivers(data);
     } catch (error) {
@@ -89,21 +91,24 @@ export default function Schedule() {
   };
   const schedule = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:8000/schedule", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          driver,
-          doanhthu,
-          start: startLocationText,
-          end: destinationText,
-          distance: Math.round(distance / 1000),
-          time: Math.round(duration / 60),
-          date: date,
-        }),
-      });
+      const response = await fetch(
+        "https://quanlidoixe-p8k7.vercel.app/schedule",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            driver,
+            doanhthu,
+            start: startLocationText,
+            end: destinationText,
+            distance: Math.round(distance / 1000),
+            time: Math.round(duration / 60),
+            date: date,
+          }),
+        }
+      );
       const data = await response.json();
       console.log(data);
 
