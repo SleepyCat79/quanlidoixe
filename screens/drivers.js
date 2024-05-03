@@ -597,6 +597,33 @@ function Driver({ route, navigation }) {
                   : ""}
               </Text>
             </View>
+            <View style={{ top: scale(120) }}>
+              <Button
+                title="Xóa phương tiện"
+                onPress={async () => {
+                  try {
+                    const response = await fetch(
+                      `https://quanlidoixe-p8k7.vercel.app/DeleteVehicle/${selectedVehicle._id}`,
+                      {
+                        method: "DELETE",
+                      }
+                    );
+
+                    if (!response.ok) {
+                      throw new Error(`HTTP status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.status === "success") {
+                      alert("Driver deleted successfully");
+                    }
+                  } catch (error) {
+                    console.error("Failed to delete vehicle:", error);
+                  }
+                }}
+              />
+            </View>
           </View>
         </View>
       </Modal>
