@@ -75,11 +75,12 @@ function MaintainScreen({ route, navigation }) {
       />
       <Tab.Screen
         name={profile}
-        component={Profile}
         options={{
           headerShown: false,
         }}
-      />
+      >
+        {(props) => <Profile {...props} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }

@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import colors from "../assets/colors/color";
 import { Ionicons } from "@expo/vector-icons";
-
+import UserManager from "./UserManager"; // Import the UserManager
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import { Padding, Border } from "../assets/globalstyle";
@@ -47,14 +47,17 @@ function SignIn() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
   const handleSignIn = async () => {
+    if (!Email || !password) {
+      alert("Validation Error", "Please enter both email and password.");
+      return;
+    }
+
     try {
       const response = await fetch(
         "https://quanlidoixe-p8k7.vercel.app/signin",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: Email, password: password }),
         }
       );
@@ -62,16 +65,16 @@ function SignIn() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle error data
-        console.error("Error signing in:", data);
-      } else {
-        // Store user's login status in AsyncStorage
-        await AsyncStorage.setItem("user", JSON.stringify(data));
-        const user = JSON.parse(await AsyncStorage.getItem("user"));
-        console.log("User data:", user);
-        navigation.navigate("MaintainScreen");
+        throw new Error(data.message || "Could not log in");
       }
+
+      // Use UserManager to handle user data
+      await UserManager.getInstance().setUser(data);
+
+      // Navigate to the next screen after successful login
+      navigation.navigate("MaintainScreen");
     } catch (error) {
+      alert("Login Error", error.message || "Failed to sign in");
       console.error("Failed to sign in:", error);
     }
   };

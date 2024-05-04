@@ -40,6 +40,8 @@ import {
 } from "react-native-chart-kit";
 import { ScaledSheet, scale } from "react-native-size-matters";
 import { set } from "mongoose";
+import UserManager from "./UserManager"; // Import the UserManager
+
 async function loadFonts() {
   await Font.loadAsync({
     "Inter-Bold": require("../assets/fonts/Inter-Bold.otf"),
@@ -96,19 +98,7 @@ function Homepage() {
         console.error("Error:", error);
       });
   }, [modalVisible3]);
-  React.useEffect(() => {
-    async function prepare() {
-      try {
-        await SplashScreen.preventAutoHideAsync();
-        await loadFonts();
-      } catch (e) {
-      } finally {
-        setFontsLoaded(true);
-      }
-    }
 
-    prepare();
-  }, []);
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === "ios");
@@ -185,30 +175,33 @@ function Homepage() {
   };
 
   React.useEffect(() => {
-    const fetchUser = async () => {
-      const userData = JSON.parse(await AsyncStorage.getItem("user"));
-      setUser(userData);
-      setUserLoaded(true); // Set userLoaded to true after the user data is set
-    };
-
     async function prepare() {
       try {
         await SplashScreen.preventAutoHideAsync();
         await loadFonts();
       } catch (e) {
+        console.error("Error loading fonts", e);
       } finally {
         setFontsLoaded(true);
+        fetchDrivers();
       }
 
-      fetchDrivers();
-      fetchUser();
+      try {
+        await UserManager.getInstance().loadUser();
+        setUser(UserManager.getInstance().getUser());
+        setUserLoaded(true);
+      } catch (e) {
+        console.error("Error loading user data", e);
+      }
     }
 
     prepare();
   }, []);
-  if (!userLoaded) {
-    return null; // Or return a loading spinner
+
+  if (!userLoaded || !fontsLoaded) {
+    return null; // Optionally, return a loading spinner or placeholder
   }
+
   const renderDriver = ({ item }) => (
     <TouchableOpacity
       onPress={() => {

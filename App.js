@@ -10,6 +10,8 @@ import * as SplashScreen from "expo-splash-screen";
 import MaintainScreen from "./screens/maintainscreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppLoading from "expo-app-loading";
+import UserManager from "./screens/UserManager"; // Import the UserManager
+import { AuthContext } from "./screens/AuthContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -34,8 +36,8 @@ export default function App() {
 
     // Check if user is logged in
     const checkUserLoggedIn = async () => {
-      const user = await AsyncStorage.getItem("user");
-      setIsUserLoggedIn(user ? true : false);
+      await UserManager.getInstance().loadUser();
+      setIsUserLoggedIn(UserManager.getInstance().isLoggedIn());
     };
 
     checkUserLoggedIn();
@@ -52,41 +54,45 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="SignUp"
-          component={SignUp}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="SignIn"
-          component={SignIn}
-          options={{
-            headerShown: false,
-          }}
-        />
-        {isUserLoggedIn ? (
-          <Stack.Screen
-            name="MaintainScreen"
-            component={MaintainScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-        ) : (
-          <Stack.Screen
-            name="MaintainScreen"
-            component={MaintainScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <AuthContext.Provider value={{ isUserLoggedIn, setIsUserLoggedIn }}>
+      <NavigationContainer>
+        <Stack.Navigator>
+          {isUserLoggedIn ? (
+            <Stack.Screen
+              name="MaintainScreen"
+              component={MaintainScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+          ) : (
+            <>
+              <Stack.Screen
+                name="SignUp"
+                component={SignUp}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="SignIn"
+                component={SignIn}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="MaintainScreen"
+                component={MaintainScreen}
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthContext.Provider>
   );
 }
 
