@@ -48,7 +48,7 @@ function SignIn() {
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
   const handleSignIn = async () => {
     if (!Email || !password) {
-      alert("Validation Error", "Please enter both email and password.");
+      alert("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
@@ -65,17 +65,22 @@ function SignIn() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Could not log in");
+        throw new Error(data.message || "Không thể đăng nhập");
       }
 
       // Use UserManager to handle user data
       await UserManager.getInstance().setUser(data);
 
       // Navigate to the next screen after successful login
-      navigation.navigate("MaintainScreen");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MaintainScreen" }],
+      });
     } catch (error) {
-      alert("Login Error", error.message || "Failed to sign in");
-      console.error("Failed to sign in:", error);
+      alert(
+        "Sai tài khoản hoặc mật khẩu",
+        error.message || "Đăng nhập thất bại"
+      );
     }
   };
   React.useEffect(() => {

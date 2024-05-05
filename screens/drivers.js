@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
-import tsu from "../assets/images/tsu.jpg";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -605,11 +604,11 @@ function Driver({ route, navigation }) {
             </View>
             <View style={{ top: scale(120) }}>
               <Button
-                title="Xóa phương tiện"
+                title="Xóa tài xế"
                 onPress={async () => {
                   try {
                     const response = await fetch(
-                      `https://quanlidoixe-p8k7.vercel.app/DeleteVehicle/${selectedVehicle._id}`,
+                      `https://quanlidoixe-p8k7.vercel.app/DeleteDriver/${selectedDriver._id}`,
                       {
                         method: "DELETE",
                       }

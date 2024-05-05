@@ -27,6 +27,7 @@ function Profile() {
   }
   const logout = async () => {
     await UserManager.getInstance().logOut();
+
     setIsUserLoggedIn(false); // Update the isUserLoggedIn state
     navigation.navigate("SignIn");
   };

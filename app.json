@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "config": {
@@ -27,13 +29,19 @@
         "googleMaps": {
           "apiKey": "AIzaSyBHCqtK7dmaygyViQOrQeC7ORXw-HAPHnA"
         }
-      }
+      },
+      "package": "com.sleepycat79.quanlidoixe"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "androidStatusBar": {
       "backgroundColor": "#000000"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6a6043dd-e4cd-4caf-b3cf-530d229b0e3c"
+      }
     }
   }
 }
